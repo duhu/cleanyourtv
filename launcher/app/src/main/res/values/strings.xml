@@ -64,4 +64,23 @@
     <string name="card_state_new">New</string>
     <string name="card_state_new_key">New key</string>
     <string name="card_state_new_label">New name</string>
+
+    <!-- Meeting-room standby screen -->
+    <string name="standby_date_pattern">MMMM d</string>
+    <string name="standby_weekday_pattern" translatable="false">EEEE</string>
+    <string name="standby_hdmi_hint">Plug in HDMI to share</string>
+    <string name="standby_hdmi_badge" translatable="false">HDMI</string>
+    <string name="standby_hdmi_switching">%1$s detected, switching…</string>
+    <string name="standby_hdmi_unplug">Unplug the cable to come back here</string>
+    <string name="standby_age_now">just now</string>
+    <string name="standby_age_minutes">%1$d min ago</string>
+    <string name="standby_age_hours">%1$d h ago</string>
+    <string name="standby_age_days">%1$d d ago</string>
+    <string name="weather_clear">Clear</string>
+    <string name="weather_cloudy">Cloudy</string>
+    <string name="weather_overcast">Overcast</string>
+    <string name="weather_fog">Fog</string>
+    <string name="weather_rain">Rain</string>
+    <string name="weather_snow">Snow</string>
+    <string name="weather_thunder">Thunderstorm</string>
 </resources>

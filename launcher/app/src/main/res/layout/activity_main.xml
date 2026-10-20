@@ -219,4 +219,12 @@
         android:layout_height="10dp"
         android:alpha="0"
         android:importantForAccessibility="no" />
+
+    <!-- Meeting-room standby screen and HDMI toast, over everything (config.xml standby / hdmi_auto_switch). -->
+    <com.gathin.tvhome.StandbyView
+        android:id="@+id/standby"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:importantForAccessibility="no" />
 </FrameLayout>

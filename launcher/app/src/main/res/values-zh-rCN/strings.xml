@@ -34,4 +34,21 @@
     <string name="cant_open">无法打开 %1$s</string>
     <string name="date_format">M月d日 EEEE</string>
     <string name="dream_name">时钟</string>
+
+    <!-- 会议室待机屏 -->
+    <string name="standby_date_pattern">M月d日</string>
+    <string name="standby_hdmi_hint">插线即投屏</string>
+    <string name="standby_hdmi_switching">检测到 %1$s，正在切换…</string>
+    <string name="standby_hdmi_unplug">拔掉线缆会自动回到待机屏</string>
+    <string name="standby_age_now">刚刚</string>
+    <string name="standby_age_minutes">%1$d 分钟前</string>
+    <string name="standby_age_hours">%1$d 小时前</string>
+    <string name="standby_age_days">%1$d 天前</string>
+    <string name="weather_clear">晴</string>
+    <string name="weather_cloudy">多云</string>
+    <string name="weather_overcast">阴</string>
+    <string name="weather_fog">雾</string>
+    <string name="weather_rain">雨</string>
+    <string name="weather_snow">雪</string>
+    <string name="weather_thunder">雷雨</string>
 </resources>
