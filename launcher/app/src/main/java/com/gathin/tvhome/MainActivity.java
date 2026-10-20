@@ -88,6 +88,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private String liveTvPkg;
     private String liveTvAction;
     private String inputAction;
+    private String inputExtra, inputMap;
     private String sourcePanelService;
     private String sourcePanelAction;
 
@@ -225,6 +226,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         sourcePanelAction = cfg.sourcePanelAction;
 
         root = findViewById(R.id.root);
+        inputExtra = cfg.inputExtra;
+        inputMap = cfg.inputMap;
         root.setBackgroundColor(cfg.backgroundColor);
         if (cfg.wallpaper != null) showWallpaper(cfg.wallpaper);
         sky = findViewById(R.id.sky);
@@ -1121,7 +1124,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 return;
             }
         }
-        open(new Intent(inputAction).setDataAndType(uri, "vnd.android.cursor.item/channel"));
+        Intent byAction = new Intent(inputAction).setDataAndType(uri, "vnd.android.cursor.item/channel");
+        // Xiaomi's China-market player takes no channel URI at all: its EXTSRC_PLAY action wants an integer
+        // extra naming the source (HDMI1 = 23 ...). input_map pairs the framework's HW id with that number.
+        Integer value = mappedInput(inputId);
+        if (value != null) {
+            byAction = new Intent(inputAction).putExtra(inputExtra, value.intValue());
+            if (!liveTvPkg.isEmpty()) byAction.setPackage(liveTvPkg);
+        }
+        open(byAction);
+    }
+
+    /** The input_map value for this input id ("HW5=23,HW6=24"; the id's last path segment is matched), or null. */
+    private Integer mappedInput(String inputId) {
+        if (inputExtra.isEmpty() || inputMap.isEmpty() || inputId == null) return null;
+        String hw = inputId.substring(inputId.lastIndexOf('/') + 1);
+        for (String pair : inputMap.split(",")) {
+            int eq = pair.indexOf('=');
+            if (eq < 0) continue;
+            if (!pair.substring(0, eq).trim().equals(hw)) continue;
+            try {
+                return Integer.parseInt(pair.substring(eq + 1).trim());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
 
     /** Dropdown menu under the Inputs pill: HDMI ports (with connection state), AV and Live TV. */
@@ -1185,7 +1213,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
         Intent liveTv = liveTvIntent();
         if (liveTv != null && tunerId != null) {
-            liveTv = new Intent(Intent.ACTION_VIEW)
+            Intent byTuner = new Intent(Intent.ACTION_VIEW)
                     .setDataAndType(TvContract.buildChannelUriForPassthroughInput(tunerId), "vnd.android.cursor.item/channel")
                     .setPackage(liveTvPkg);
         }
@@ -1231,6 +1259,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         panel.animate().alpha(1f).scaleY(1f).translationY(0f).setDuration(220)
                 .setInterpolator(new android.view.animation.DecelerateInterpolator(1.6f)).start();
     }
+            // Only when the Live TV app takes a channel URI: Xiaomi's China-market player answers its own
+            // action (live_tv_action) and nothing else, so the launch intent found above stays.
+            if (byTuner.resolveActivity(getPackageManager()) != null) liveTv = byTuner;
 
     private void addSeparator(LinearLayout rows) {
         View line = new View(this);

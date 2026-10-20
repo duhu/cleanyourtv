@@ -1,0 +1,51 @@
+# Xiaomi / Redmi TV A50 2025 (MiTV-ASTP0, codename mulan; China-market firmware), Android 9 (SDK 28),
+# firmware 25.6.6.OS2.0.19.0.PSTAATV (HyperOS 2 TV build), Amlogic, 2 GB RAM, 1080p panel.
+# Stock launcher: com.mitv.tvhome (HOME activity .MainActivityUserMode), the GITV content wall.
+# It is not in KNOWN_STOCK_LAUNCHERS, so install with: STOCK_LAUNCHER=com.mitv.tvhome launcher/build-and-install.sh
+#
+# Apply:   TV_HOST=<tv ip> tools/disable.sh examples/xiaomi-mitv-astp0-mulan/debloat.txt
+# Undo:    TV_HOST=<tv ip> tools/restore.sh examples/xiaomi-mitv-astp0-mulan/debloat.txt com.mitv.tvhome
+# Everything is DISABLED, not uninstalled. Comment out any line you want to keep.
+#
+# Notes from this firmware:
+# - Only 65 packages, no Google apps and no third-party streaming apps preinstalled: the content
+#   (and the ads) come from the stock launcher itself, so swapping the launcher matters most.
+# - Only 2.4 GHz Wi-Fi. Ethernet works; this list was applied over a direct cable to a Mac with
+#   Internet Sharing handing the TV an address.
+# - ADB: Settings -> About -> focus "产品型号" and press OK on the remote 8+ times to unlock developer
+#   mode, then Settings -> 账号与安全 -> ADB 调试. The toggle turns itself off after a reboot.
+#   The "allow debugging" dialog only shows on the home screen, not inside Settings.
+# - mitv.service is the core MiTV service: do not touch it.
+# - com.xiaomi.mitv.settings is the ONLY settings UI.
+# - Casting (com.xiaomi.mitv.smartshare / com.xiaomi.miplay / com.tcly.sharescreen /
+#   com.xiaomi.wfdsinkhelperservice / com.xiaomi.hyper_connect.tv) and the app store are kept.
+# - Voice (com.xiaomi.voicecontrol, com.xiaomi.wakeupservice) is kept; add it here if you don't use it.
+# - Sideloading works (pm install over ADB), and the launcher took Home with STOCK_LAUNCHER=com.mitv.tvhome.
+#   Launcher config that fits this firmware (launcher/.../values/config.xml): extra_apps for the app store
+#   (com.xiaomi.mitv.appstore/.MainActivity), file explorer (com.xiaomi.mitv.mediaexplorer/.NewScraperMainEntryActivity)
+#   and TV player (com.xiaomi.mitv.tvplayer/.ExternalSourceActivity), which declare no launcher category;
+#   live_tv_package com.xiaomi.mitv.tvplayer with live_tv_action com.xiaomi.mitv.tvplayer.ATV_PLAY; inputs via
+#   input_action com.xiaomi.mitv.tvplayer.EXTSRC_PLAY, input_extra `input`, input_map HW5=23,HW6=24,HW7=25,HW1=2
+#   (TvInputManager ids: HDMI1-3 = com.droidlogic.tvinput/.services.Hdmi{1,2,3}InputService/HW{5,6,7}, AV1 = HW1,
+#   ADTV tuner = HW16; the Xiaomi integer for DTMB is 28, analogue TV 1).
+
+# Xiaomi telemetry / push / cloud control
+com.miui.analytics
+com.miui.tv.analytics
+com.mitv.cloudcontrol
+com.xiaomi.mitv.tvpush.tvpushservice
+
+# Ads / promoted content
+com.xm.webcontent
+com.mitv.shoplugin                      # TV shopping channel plugin
+com.duokan.videodaily                   # video daily promos
+
+# Xiaomi background services
+com.xiaomi.mitv.tvmanager               # "TV Manager" cleaner, nags from the background
+com.xiaomi.mitv.upgrade                 # firmware updates: re-enable to check for one
+com.xiaomi.mitv.karaoke.service         # karaoke service
+
+# Preloaded apps not used
+com.xiaomi.tv.gallery
+com.mitv.gallery                        # Media Explorer still opens USB files
+com.xiaomi.mitv.smartpanel              # smart home panel

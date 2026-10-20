@@ -120,6 +120,8 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     private int docked, emptySlots;
     /** Never shown as tiles (res/values/config.xml, hidden_apps). */
     private final Set<String> hidden;
+    /** Explicit package/activity entries added as tiles (config.xml, extra_apps). */
+    private final List<String> extraApps;
     private final boolean animations;
     private final boolean advancedEffects;
     private final boolean showHomeSettings;
@@ -134,6 +136,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         this.favourites = cfg.dockApps;
         this.fillDock = cfg.fillDock;
         this.hidden = new HashSet<>(cfg.hiddenApps);
+        this.extraApps = cfg.extraApps;
         this.animations = cfg.animations;
         this.advancedEffects = cfg.animations && cfg.advancedEffects;
         this.showHomeSettings = cfg.showHomeSettingsShortcut;
@@ -150,7 +153,30 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     void reload(List<Cards.Card> cards) {
         PackageManager pm = ctx.getPackageManager();
         Intent probe = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER);
-        List<ResolveInfo> found = pm.queryIntentActivities(probe, 0);
+        List<ResolveInfo> found = new ArrayList<>(pm.queryIntentActivities(probe, 0));
+        // China-market firmware (Xiaomi MIUI TV / HyperOS) ships apps with only the phone-style LAUNCHER
+        // category, the settings app among them. List those too, one tile per package, the TV entry first.
+        Set<String> seen = new HashSet<>();
+        for (ResolveInfo ri : found) if (ri.activityInfo != null) seen.add(ri.activityInfo.packageName);
+        Intent plain = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+        for (ResolveInfo ri : pm.queryIntentActivities(plain, 0)) {
+            if (ri.activityInfo != null && seen.add(ri.activityInfo.packageName)) found.add(ri);
+        }
+        // Activities that declare no launcher category at all (Xiaomi's app store, file explorer and TV
+        // player), named explicitly as package/activity in extra_apps.
+        for (String spec : extraApps) {
+            ComponentName cn = ComponentName.unflattenFromString(spec);
+            if (cn == null || seen.contains(cn.getPackageName())) continue;
+            try {
+                ResolveInfo ri = new ResolveInfo();
+                ri.activityInfo = pm.getActivityInfo(cn, 0);
+                if (!ri.activityInfo.exported || !ri.activityInfo.enabled
+                        || !ri.activityInfo.applicationInfo.enabled) continue;
+                seen.add(cn.getPackageName());
+                found.add(ri);
+            } catch (PackageManager.NameNotFoundException ignored) {
+            }
+        }
         Map<String, Cards.Card> cardByPkg = new HashMap<>();
         for (Cards.Card c : cards) cardByPkg.put(c.pkg, c);
         List<Entry> fresh = new ArrayList<>();

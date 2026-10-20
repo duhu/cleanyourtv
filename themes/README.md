@@ -29,7 +29,9 @@ is ignored, and a file that doesn't parse is ignored as a whole, so a theme can 
 | `dock_apps` | list of package names | The dock row, in order; missing apps are skipped |
 | `fill_dock` | bool | Fill the dock slots `dock_apps` leaves free with the first grid apps (true by default); false leaves them empty |
 | `hidden_apps` | list of package names | Never shown as tiles |
+| `extra_apps` | list of `package/activity` | Tiles for exported activities that declare no launcher category (Xiaomi China firmware hides its app store this way) |
 | `live_tv_package`, `live_tv_action` | string | The Live TV app and, if it has no leanback entry, the action to start it with |
+| `input_extra`, `input_map` | string | For players that switch inputs by an integer extra instead of a channel URI (Xiaomi China firmware): the extra's name, and `HW5=23,HW6=24,...` pairing the framework input id with that number, sent with `input_action` |
 | `source_panel_service`, `source_panel_action` | string | The TV's own source panel, for sets with no TvInputManager |
 | `input_action` | string | Action sent with an HDMI/AV row's channel URI when nothing handles the standard `VIEW` (XGIMI: `com.xgimi.action.hdmiPlayer`) |
 | `columns` | 1 to 8 | Tiles per row; tiles shrink to fit from 5 up |
