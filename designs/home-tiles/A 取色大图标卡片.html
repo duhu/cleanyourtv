@@ -1,0 +1,21 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>A 取色大图标卡片</title>
+<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="home.css">
+<style>
+  /* The tile keeps its card, but the app's own colour fills it as a soft gradient and the icon grows to
+     fill the height, so icon and card read as one object. Focused: scaled up with a white hairline. */
+  .row { position: absolute; left: 112px; top: 680px; display: flex; gap: 40px; }
+  .tile { width: 400px; height: 224px; border-radius: 40px; position: relative;
+    background: radial-gradient(420px 260px at 30% 20%, rgba(76,217,100,.55), rgba(28,28,30,1) 75%);
+    box-shadow: 0 0 0 3px rgba(255,255,255,.85), 0 30px 60px rgba(0,0,0,.55); transform: scale(1.08); transform-origin: left center; }
+  .tile img { position: absolute; left: 44px; top: 40px; width: 144px; height: 144px; border-radius: 34px; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  .tile .n { position: absolute; left: 220px; top: 70px; font-size: 40px; font-weight: 500; }
+  .tile .s { position: absolute; left: 220px; top: 126px; font-size: 24px; color: var(--t55); }
+</style></head><body>
+  <div class="clockline"><span class="t">2:30</span><span class="ampm">上午</span><span class="sep"></span><span class="d">9月15日 星期二</span></div>
+  <div class="topbtns"><span class="pill"><span class="ic"></span>输入源</span><span class="pill"><span class="ic"></span>有线网络</span><span class="pill"><span class="ic"></span>设置</span></div>
+  <div class="hero">无线投屏</div>
+  <div class="row">
+    <div class="tile"><img src="icon-smartshare.png"><div class="n">无线投屏</div><div class="s">手机 / 电脑投到这台电视</div></div>
+  </div>
+  <div class="note">A · 卡片保留，底色取自图标，图标放大、文字在右；焦点态放大 + 白描边</div>
+</body></html>

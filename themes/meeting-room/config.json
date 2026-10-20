@@ -1,7 +1,12 @@
 {
-  "dock_apps": ["com.xiaomi.mitv.tvplayer", "com.xiaomi.mitv.appstore", "com.xiaomi.mitv.smartshare", "com.xiaomi.mitv.mediaexplorer"],
+  "dock_apps": ["com.xiaomi.mitv.smartshare"],
+  "fill_dock": false,
+  "only_apps": ["com.xiaomi.mitv.smartshare"],
   "hidden_apps": ["com.mitv.tvhome", "com.mitv.gallery"],
   "extra_apps": ["com.xiaomi.mitv.tvplayer/.ExternalSourceActivity", "com.xiaomi.mitv.appstore/.MainActivity", "com.xiaomi.mitv.mediaexplorer/.NewScraperMainEntryActivity"],
+  "show_greeting": false,
+  "tile_style": "capsule",
+  "dim_top_buttons": true,
   "standby": true,
   "standby_idle_seconds": 30,
   "standby_flip_clock": true,

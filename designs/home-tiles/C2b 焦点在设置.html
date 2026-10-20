@@ -1,0 +1,21 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>C2b 焦点在设置</title>
+<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="home.css">
+<style>
+  /* C with the big hero title gone and the three top buttons at rest: dim (40%), no fill, hairline only.
+     Whatever has focus is lit: full opacity, glass fill, white hairline. */
+  .topbtns .pill { opacity: .4; background: none; border-color: rgba(255,255,255,.35); transition: none; }
+  .topbtns .pill.lit { opacity: 1; background: linear-gradient(rgba(255,255,255,.26), rgba(255,255,255,.12)); border: 3px solid rgba(255,255,255,.9); }
+  .row { position: absolute; left: 112px; top: 640px; display: flex; gap: 36px; }
+  .btn { display: inline-flex; align-items: center; gap: 26px; height: 120px; padding: 0 56px 0 28px; border-radius: 60px;
+    background: none; border: 2px solid rgba(255,255,255,.35); font-size: 38px; font-weight: 500; opacity: .55; }
+  .btn img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; }
+  .btn.lit { opacity: 1; background: linear-gradient(rgba(255,255,255,.26), rgba(255,255,255,.12)); border: 3px solid rgba(255,255,255,.9);
+    box-shadow: 0 20px 50px rgba(0,0,0,.45); transform: scale(1.06); transform-origin: left center; }
+</style></head><body>
+  <div class="clockline"><span class="t">2:30</span><span class="ampm">上午</span><span class="sep"></span><span class="d">9月15日 星期二</span></div>
+  <div class="topbtns"><span class="pill"><span class="ic"></span>输入源</span><span class="pill"><span class="ic"></span>有线网络</span><span class="pill lit"><span class="ic"></span>设置</span></div>
+  <div class="row">
+    <div class="btn"><img src="icon-smartshare.png">无线投屏</div>
+  </div>
+  <div class="note">C2b · 遥控器移到「设置」：它点亮，其余（包括无线投屏）回到淡态</div>
+</body></html>

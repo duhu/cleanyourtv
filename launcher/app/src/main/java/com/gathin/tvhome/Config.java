@@ -75,6 +75,14 @@ final class Config {
     final Festival festival;
     /** Meeting-room standby screen and HDMI auto-switch (standby, hdmi_auto_switch, weather_*, gitlab_*, feed_url). */
     final StandbyConfig standby;
+    /** When not empty, only these packages get tiles (config.xml, only_apps). */
+    final List<String> onlyApps;
+    /** The greeting line above the clock (config.xml, show_greeting). */
+    final boolean showGreeting;
+    /** "card" or "capsule" (config.xml, tile_style). */
+    final String tileStyle;
+    /** The three top-right buttons stay faint until focused (config.xml, dim_top_buttons). */
+    final boolean dimTopButtons;
 
     private Config(List<String> dockApps, boolean fillDock, List<String> hiddenApps, List<String> extraApps, String liveTvPackage,
                    String liveTvAction, String sourcePanelService, String sourcePanelAction, String inputAction,
@@ -83,7 +91,8 @@ final class Config {
                    boolean shamsiDate, boolean moduleCards, boolean reducedMotion, String vpnApp,
                    boolean showHomeSettingsShortcut, int backgroundColor, int skyIntensity,
                    int[] settingsKeycodes, boolean settingsKeyPanel, File wallpaper, boolean overlayApplied,
-                   Festival festival, StandbyConfig standby) {
+                   Festival festival, StandbyConfig standby, List<String> onlyApps, boolean showGreeting,
+                   String tileStyle, boolean dimTopButtons) {
         this.dockApps = Collections.unmodifiableList(dockApps);
         this.fillDock = fillDock;
         this.hiddenApps = Collections.unmodifiableList(hiddenApps);
@@ -112,6 +121,10 @@ final class Config {
         this.overlayApplied = overlayApplied;
         this.festival = festival;
         this.standby = standby;
+        this.onlyApps = Collections.unmodifiableList(onlyApps);
+        this.showGreeting = showGreeting;
+        this.tileStyle = tileStyle;
+        this.dimTopButtons = dimTopButtons;
     }
 
     /** The folder the theme tools push into; null when external storage is unavailable. */
@@ -125,6 +138,10 @@ final class Config {
         boolean fillDock = res.getBoolean(R.bool.fill_dock);
         List<String> hidden = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.hidden_apps)));
         List<String> extra = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.extra_apps)));
+        List<String> only = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.only_apps)));
+        boolean showGreeting = res.getBoolean(R.bool.show_greeting);
+        String tileStyle = res.getString(R.string.tile_style).trim();
+        boolean dimTopButtons = res.getBoolean(R.bool.dim_top_buttons);
         String liveTv = res.getString(R.string.live_tv_package).trim();
         String liveTvAction = res.getString(R.string.live_tv_action).trim();
         String panelService = res.getString(R.string.source_panel_service).trim();
@@ -166,6 +183,10 @@ final class Config {
             fillDock = bool(json, "fill_dock", fillDock);
             hidden = stringList(json, "hidden_apps", hidden);
             extra = stringList(json, "extra_apps", extra);
+            only = stringList(json, "only_apps", only);
+            showGreeting = bool(json, "show_greeting", showGreeting);
+            tileStyle = string(json, "tile_style", tileStyle);
+            dimTopButtons = bool(json, "dim_top_buttons", dimTopButtons);
             liveTv = string(json, "live_tv_package", liveTv);
             liveTvAction = string(json, "live_tv_action", liveTvAction);
             panelService = string(json, "source_panel_service", panelService);
@@ -220,7 +241,8 @@ final class Config {
                 Math.max(0, Math.min(100, skyIntensity)), settingsKeycodes, settingsKeyPanel, wallpaper, applied,
                 festival,
                 StandbyConfig.from(standbyOn, standbyIdle, weatherLat, weatherLon, gitlabUrl, gitlabToken,
-                        gitlabProjects, feedUrl, hdmiAutoSwitch, flipClock));
+                        gitlabProjects, feedUrl, hdmiAutoSwitch, flipClock),
+                only, showGreeting, "capsule".equals(tileStyle) ? "capsule" : "card", dimTopButtons);
     }
 
     private static void syncThemeChoices(SharedPreferences choices, File dir, File config) {

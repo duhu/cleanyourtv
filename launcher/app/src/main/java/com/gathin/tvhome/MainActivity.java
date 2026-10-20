@@ -129,6 +129,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private boolean moduleCards;
     /** Calmer motion for weak GPUs (config.xml, reduced_motion): stiff spring, short fades, no replay. */
     private boolean reducedMotion;
+    /** config.xml show_greeting, tile_style capsule, dim_top_buttons. */
+    private boolean showGreeting, capsuleTiles, dimTopButtons;
+    private static final float DIM_BUTTON_ALPHA = 0.4f;
     /** Festive skin from the theme (see Festival); applied while it is active today. */
     private Festival festival = Festival.NONE;
     private boolean festive;
@@ -233,6 +236,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         animations = cfg.animations;
         advancedEffects = cfg.animations && cfg.advancedEffects;
         reducedMotion = cfg.reducedMotion;
+        showGreeting = cfg.showGreeting;
+        capsuleTiles = "capsule".equals(cfg.tileStyle);
+        dimTopButtons = cfg.dimTopButtons;
         festival = cfg.festival;
         festive = festival.active(LocalDate.now());
         liveTvPkg = cfg.liveTvPackage;
@@ -422,6 +428,17 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 button.setOnFocusChangeListener((view, focused) -> view.animate()
                         .scaleX(focused ? 1.04f : 1f).scaleY(focused ? 1.04f : 1f)
                         .setDuration(160).start());
+            }
+        }
+        if (dimTopButtons) {
+            for (View button : new View[]{btnInputs, btnWifi, btnSettings}) {
+                button.setAlpha(button.isFocused() ? 1f : DIM_BUTTON_ALPHA);
+                View.OnFocusChangeListener previous = button.getOnFocusChangeListener();
+                button.setOnFocusChangeListener((view, focused) -> {
+                    if (previous != null) previous.onFocusChange(view, focused);
+                    if (animations) view.animate().alpha(focused ? 1f : DIM_BUTTON_ALPHA).setDuration(160).start();
+                    else view.setAlpha(focused ? 1f : DIM_BUTTON_ALPHA);
+                });
             }
         }
         if (festive) applyFestiveSkin((TextView) btnInputs, (TextView) btnSettings);
@@ -724,7 +741,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
         glassTargetX = x;
         glassTargetY = y;
-        if (!glassShown) {
+        if (capsuleTiles) {
+            // A capsule carries its own focus look (capsule_bg); the glass slab would double it.
+            glass.setTranslationX(x);
+            glass.setTranslationY(y);
+        } else if (!glassShown) {
             springX.cancel();
             springY.cancel();
             glass.setTranslationX(x);
@@ -765,6 +786,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     // ---- top shelf -------------------------------------------------------------------------------
 
     private void showHero(int position, float dockTopInRoot) {
+        if (capsuleTiles) return;   // the capsule already carries the name
         String label = adapter.labelAt(position);
         int color = adapter.ambientColorAt(position);
         float y = dockTopInRoot - 14 * density - 26 * density - heroName.getHeight();
@@ -967,6 +989,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     // ---- top bar ---------------------------------------------------------------------------------
 
     private void updateGreeting() {
+        greeting.setVisibility(showGreeting ? View.VISIBLE : View.GONE);
+        if (!showGreeting) {
+            if (shamsi) shamsiDate.setText(Shamsi.today());
+            return;
+        }
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         int res;
         if (hour < 5) res = R.string.good_night;

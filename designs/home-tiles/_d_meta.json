@@ -1,0 +1,23 @@
+{
+  "type": "design",
+  "designSystems": [],
+  "primaryDesignSystem": null,
+  "assets": {
+    "C2 胶囊按钮 弱化顶栏": {
+      "versions": [
+        {
+          "path": "C2 胶囊按钮 弱化顶栏.html",
+          "createdAt": "2026-10-20T12:09:53.183Z",
+          "status": "approved",
+          "subtitle": "主页精简：胶囊应用按钮、无大标题、顶栏弱化（已选定）",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ]
+    }
+  },
+  "createdAt": "2026-10-20T12:09:53.184Z",
+  "updatedAt": "2026-10-20T12:09:53.184Z"
+}

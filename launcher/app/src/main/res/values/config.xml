@@ -25,6 +25,18 @@
         <item>com.mitv.gallery</item>
     </string-array>
 
+    <!-- When not empty, only these packages get tiles (hidden_apps still applies). For a TV used for one
+         thing, e.g. a meeting-room set that only casts. Leave empty to show every app. -->
+    <string-array name="only_apps" />
+
+    <!-- The greeting line above the clock ("Good evening"); false hides it. -->
+    <bool name="show_greeting">true</bool>
+    <!-- Tiles as "card" (banner or icon on a dark card, the name under it) or "capsule" (a round icon and the
+         name in one pill, like the top-right buttons; no glass highlight and no large title). -->
+    <string name="tile_style" translatable="false">card</string>
+    <!-- Keep the Inputs, network and Settings buttons faint until one of them has focus. -->
+    <bool name="dim_top_buttons">false</bool>
+
     <!-- Activities shown as tiles although they declare neither LEANBACK_LAUNCHER nor LAUNCHER, as
          package/activity. China-market Xiaomi firmware hides its app store, file explorer and TV player this
          way (com.xiaomi.mitv.appstore/.MainActivity). Must be exported; one tile per package. Leave empty to omit. -->

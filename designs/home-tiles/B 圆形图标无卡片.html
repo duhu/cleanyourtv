@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>B 圆形图标无卡片</title>
+<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="home.css">
+<style>
+  /* No card at all: the icon is masked to a circle with a halo in its own colour; the name sits under it.
+     Focused: a white ring and a stronger halo. */
+  .row { position: absolute; left: 140px; top: 660px; display: flex; gap: 72px; }
+  .app { display: flex; flex-direction: column; align-items: center; gap: 26px; }
+  .ball { width: 200px; height: 200px; border-radius: 50%; position: relative; display: grid; place-items: center;
+    background: #1c1c1e; box-shadow: 0 0 0 4px #fff, 0 0 90px 10px rgba(76,217,100,.45); transform: scale(1.08); }
+  .ball img { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; transform: scale(1.25); }
+  .ball { overflow: hidden; }
+  .app .n { font-size: 34px; font-weight: 500; color: var(--t100); }
+</style></head><body>
+  <div class="clockline"><span class="t">2:30</span><span class="ampm">上午</span><span class="sep"></span><span class="d">9月15日 星期二</span></div>
+  <div class="topbtns"><span class="pill"><span class="ic"></span>输入源</span><span class="pill"><span class="ic"></span>有线网络</span><span class="pill"><span class="ic"></span>设置</span></div>
+  <div class="row">
+    <div class="app"><div class="ball"><img src="icon-smartshare.png"></div><div class="n">无线投屏</div></div>
+  </div>
+  <div class="note">B · 去掉卡片和大标题，图标裁成圆形带同色光晕，名字在下；焦点态白环</div>
+</body></html>

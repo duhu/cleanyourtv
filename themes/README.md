@@ -30,6 +30,10 @@ is ignored, and a file that doesn't parse is ignored as a whole, so a theme can 
 | `dock_apps` | list of package names | The dock row, in order; missing apps are skipped |
 | `fill_dock` | bool | Fill the dock slots `dock_apps` leaves free with the first grid apps (true by default); false leaves them empty |
 | `hidden_apps` | list of package names | Never shown as tiles |
+| `only_apps` | list of package names | When not empty, only these packages get tiles (`hidden_apps` still applies): a TV kept for one thing, e.g. a meeting-room set that only casts |
+| `show_greeting` | bool | The greeting line above the clock ("Good evening"); false hides it |
+| `tile_style` | `card` or `capsule` | `card` (default): banner or icon on a dark card with the name under it and the glass highlight. `capsule`: a round icon and the name in one pill like the top-right buttons, faint until focused, no glass and no large title |
+| `dim_top_buttons` | bool | The Inputs, network and Settings buttons stay at 40 % until one has focus |
 | `extra_apps` | list of `package/activity` | Tiles for exported activities that declare no launcher category (Xiaomi China firmware hides its app store this way) |
 | `live_tv_package`, `live_tv_action` | string | The Live TV app and, if it has no leanback entry, the action to start it with |
 | `input_extra`, `input_map` | string | For players that switch inputs by an integer extra instead of a channel URI (Xiaomi China firmware): the extra's name, and `HW5=23,HW6=24,...` pairing the framework input id with that number, sent with `input_action` |

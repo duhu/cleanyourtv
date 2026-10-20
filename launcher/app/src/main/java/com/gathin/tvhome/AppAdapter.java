@@ -122,6 +122,12 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     private final Set<String> hidden;
     /** Explicit package/activity entries added as tiles (config.xml, extra_apps). */
     private final List<String> extraApps;
+    /** When not empty, only these packages get tiles (config.xml, only_apps). */
+    private final Set<String> only;
+    /** Tiles as capsules: a round icon and the name in one pill, faint until focused (config.xml, tile_style). */
+    private final boolean capsule;
+    static final int CAPSULE_H_DP = 56;
+    static final float CAPSULE_DIM_ALPHA = 0.55f;
     private final boolean animations;
     private final boolean advancedEffects;
     private final boolean showHomeSettings;
@@ -137,6 +143,8 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         this.fillDock = cfg.fillDock;
         this.hidden = new HashSet<>(cfg.hiddenApps);
         this.extraApps = cfg.extraApps;
+        this.only = new HashSet<>(cfg.onlyApps);
+        this.capsule = "capsule".equals(cfg.tileStyle);
         this.animations = cfg.animations;
         this.advancedEffects = cfg.animations && cfg.advancedEffects;
         this.showHomeSettings = cfg.showHomeSettingsShortcut;
@@ -183,7 +191,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         for (ResolveInfo ri : found) {
             if (ri.activityInfo == null) continue;
             String pkg = ri.activityInfo.packageName;
-            if (pkg.equals(ctx.getPackageName()) || hidden.contains(pkg)) continue;
+            if (pkg.equals(ctx.getPackageName()) || !TileFilter.shows(pkg, hidden, only)) continue;
             ComponentName component = new ComponentName(pkg, ri.activityInfo.name);
             Cards.Card card = cardByPkg.get(pkg);
             if (card != null && !card.component.equals(component)) continue;   // the card stands in for this tile
@@ -246,11 +254,11 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     @NonNull
     @Override
     public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_app, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(capsule ? R.layout.item_app_capsule : R.layout.item_app, parent, false);
         float density = parent.getResources().getDisplayMetrics().density;
         int width = parent.getWidth() > 0 ? parent.getWidth() : parent.getMeasuredWidth();
         int inner = width - parent.getPaddingLeft() - parent.getPaddingRight();
-        int w = tileWidthPx(inner, dockSize, density), h = tileHeightPx(w);
+        int w = tileWidthPx(inner, dockSize, density), h = capsule ? Math.round(CAPSULE_H_DP * density) : tileHeightPx(w);
         View card = v.findViewById(R.id.card);
         ViewGroup.LayoutParams cardLp = card.getLayoutParams();
         cardLp.width = w;
@@ -261,7 +269,7 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         nameLp.width = w;
         nameLp.topMargin = h + Math.round(7 * density);
         name.setLayoutParams(nameLp);
-        return new Holder(v, listener, animations, advancedEffects, reducedMotion);
+        return new Holder(v, listener, animations, advancedEffects, reducedMotion, capsule);
     }
 
     @Override
@@ -290,7 +298,8 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         h.card.setTranslationZ(focused && advancedEffects ? 8f * ctx.getResources().getDisplayMetrics().density : 0f);
         h.banner.setScaleX(focused && advancedEffects ? 1.035f : 1f);
         h.banner.setScaleY(focused && advancedEffects ? 1.035f : 1f);
-        if (e.banner != null) {
+        if (capsule) h.card.setAlpha(focused ? 1f : CAPSULE_DIM_ALPHA);
+        if (e.banner != null && !capsule) {
             h.banner.setImageDrawable(e.banner);
             h.banner.setVisibility(View.VISIBLE);
             h.icon.setVisibility(View.GONE);
@@ -442,10 +451,12 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         final boolean animations;
         final boolean advancedEffects;
         final boolean reducedMotion;
+        final boolean capsule;
 
         Holder(View v, TileListener listener, boolean animations, boolean advancedEffects,
-               boolean reducedMotion) {
+               boolean reducedMotion, boolean capsule) {
             super(v);
+            this.capsule = capsule;
             card = v.findViewById(R.id.card);
             banner = v.findViewById(R.id.banner);
             icon = v.findViewById(R.id.icon);
@@ -459,11 +470,22 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
             card.setOutlineProvider(new ViewOutlineProvider() {
                 @Override
                 public void getOutline(View view, Outline outline) {
-                    // 16dp at the design width, scaled down with the tile so small tiles keep the same shape.
-                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), cornerRadius(view.getWidth(), density));
+                    // 16dp at the design width, scaled down with the tile so small tiles keep the same shape;
+                    // a capsule is a full pill.
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(),
+                            capsule ? view.getHeight() / 2f : cornerRadius(view.getWidth(), density));
                 }
             });
             card.setClipToOutline(true);
+            if (capsule) {
+                icon.setOutlineProvider(new ViewOutlineProvider() {
+                    @Override
+                    public void getOutline(View view, Outline outline) {
+                        outline.setOval(0, 0, view.getWidth(), view.getHeight());
+                    }
+                });
+                icon.setClipToOutline(true);
+            }
 
             card.setOnKeyListener((view, keyCode, event) -> {
                 if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
@@ -479,6 +501,9 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
                 name.animate().cancel();
                 float scale = !animations ? 1f : advancedEffects ? 1.12f : 1.10f;
                 float s = focused ? scale : 1f;
+                // Capsules sit faint until focused; the alpha joins whichever animator runs below.
+                if (capsule && animations) view.animate().alpha(focused ? 1f : CAPSULE_DIM_ALPHA);
+                else if (capsule) view.setAlpha(focused ? 1f : CAPSULE_DIM_ALPHA);
                 if (!animations) {
                     view.setScaleX(1f);
                     view.setScaleY(1f);

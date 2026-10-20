@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>C 胶囊按钮</title>
+<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="home.css">
+<style>
+  /* Apps become pill buttons like the three at the top right: a small round icon and the name in one
+     capsule, so the whole screen is one family of controls. Focused: brighter fill and a white hairline. */
+  .row { position: absolute; left: 112px; top: 700px; display: flex; gap: 36px; }
+  .btn { display: inline-flex; align-items: center; gap: 26px; height: 120px; padding: 0 56px 0 28px; border-radius: 60px;
+    background: linear-gradient(rgba(255,255,255,.26), rgba(255,255,255,.12)); border: 3px solid rgba(255,255,255,.9); font-size: 38px; font-weight: 500;
+    box-shadow: 0 20px 50px rgba(0,0,0,.45); transform: scale(1.06); transform-origin: left center; }
+  .btn img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; }
+  .hero { top: 540px; }
+</style></head><body>
+  <div class="clockline"><span class="t">2:30</span><span class="ampm">上午</span><span class="sep"></span><span class="d">9月15日 星期二</span></div>
+  <div class="topbtns"><span class="pill"><span class="ic"></span>输入源</span><span class="pill"><span class="ic"></span>有线网络</span><span class="pill"><span class="ic"></span>设置</span></div>
+  <div class="hero">无线投屏</div>
+  <div class="row">
+    <div class="btn"><img src="icon-smartshare.png">无线投屏</div>
+  </div>
+  <div class="note">C · 应用变成和右上角同款的胶囊按钮（小圆图标 + 名字），整屏一套控件；焦点态更亮 + 白描边</div>
+</body></html>
