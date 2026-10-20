@@ -39,11 +39,16 @@ final class Config {
     /** Grid apps fill the dock slots dock_apps leaves free (config.xml, fill_dock); on by default, false leaves the slots empty. */
     final boolean fillDock;
     final List<String> hiddenApps;
+    /** Activities shown as tiles although they declare no launcher category, as package/activity (config.xml, extra_apps). */
+    final List<String> extraApps;
     final String liveTvPackage;
     final String liveTvAction;
     final String sourcePanelService;
     final String sourcePanelAction;
     final String inputAction;
+    /** Integer extra sent with input_action, and the HW id to value map (config.xml, input_extra, input_map). */
+    final String inputExtra;
+    final String inputMap;
     final int columns;
     final boolean animations;
     final boolean advancedEffects;
@@ -68,22 +73,28 @@ final class Config {
     final boolean overlayApplied;
     /** Festive skin from a theme (festival, festival_until, greeting, accent_color); {@link Festival#NONE} if none. */
     final Festival festival;
+    /** Meeting-room standby screen and HDMI auto-switch (standby, hdmi_auto_switch, weather_*, gitlab_*, feed_url). */
+    final StandbyConfig standby;
 
-    private Config(List<String> dockApps, boolean fillDock, List<String> hiddenApps, String liveTvPackage,
+    private Config(List<String> dockApps, boolean fillDock, List<String> hiddenApps, List<String> extraApps, String liveTvPackage,
                    String liveTvAction, String sourcePanelService, String sourcePanelAction, String inputAction,
+                   String inputExtra, String inputMap,
                    int columns, int rowsBelowDock, boolean animations, boolean advancedEffects,
                    boolean shamsiDate, boolean moduleCards, boolean reducedMotion, String vpnApp,
                    boolean showHomeSettingsShortcut, int backgroundColor, int skyIntensity,
                    int[] settingsKeycodes, boolean settingsKeyPanel, File wallpaper, boolean overlayApplied,
-                   Festival festival) {
+                   Festival festival, StandbyConfig standby) {
         this.dockApps = Collections.unmodifiableList(dockApps);
         this.fillDock = fillDock;
         this.hiddenApps = Collections.unmodifiableList(hiddenApps);
+        this.extraApps = Collections.unmodifiableList(extraApps);
         this.liveTvPackage = liveTvPackage;
         this.liveTvAction = liveTvAction;
         this.sourcePanelService = sourcePanelService;
         this.sourcePanelAction = sourcePanelAction;
         this.inputAction = inputAction;
+        this.inputExtra = inputExtra;
+        this.inputMap = inputMap;
         this.columns = columns;
         this.rowsBelowDock = rowsBelowDock;
         this.animations = animations;
@@ -100,6 +111,7 @@ final class Config {
         this.wallpaper = wallpaper;
         this.overlayApplied = overlayApplied;
         this.festival = festival;
+        this.standby = standby;
     }
 
     /** The folder the theme tools push into; null when external storage is unavailable. */
@@ -112,11 +124,14 @@ final class Config {
         List<String> dock = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.dock_apps)));
         boolean fillDock = res.getBoolean(R.bool.fill_dock);
         List<String> hidden = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.hidden_apps)));
+        List<String> extra = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.extra_apps)));
         String liveTv = res.getString(R.string.live_tv_package).trim();
         String liveTvAction = res.getString(R.string.live_tv_action).trim();
         String panelService = res.getString(R.string.source_panel_service).trim();
         String panelAction = res.getString(R.string.source_panel_action).trim();
         String inputAction = res.getString(R.string.input_action).trim();
+        String inputExtra = res.getString(R.string.input_extra).trim();
+        String inputMap = res.getString(R.string.input_map).trim();
         int columns = res.getInteger(R.integer.columns);
         int rowsBelow = res.getInteger(R.integer.rows_below_dock);
         boolean animations = res.getBoolean(R.bool.animations);
@@ -131,6 +146,15 @@ final class Config {
         int[] settingsKeycodes = res.getIntArray(R.array.settings_key_keycodes);
         boolean settingsKeyPanel = res.getBoolean(R.bool.settings_key_panel);
         boolean applied = false;
+        boolean standbyOn = res.getBoolean(R.bool.standby);
+        int standbyIdle = res.getInteger(R.integer.standby_idle_seconds);
+        String weatherLat = res.getString(R.string.weather_lat).trim();
+        String weatherLon = res.getString(R.string.weather_lon).trim();
+        String gitlabUrl = res.getString(R.string.gitlab_url).trim();
+        String gitlabToken = res.getString(R.string.gitlab_token).trim();
+        List<String> gitlabProjects = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.gitlab_projects)));
+        String feedUrl = res.getString(R.string.feed_url).trim();
+        boolean hdmiAutoSwitch = res.getBoolean(R.bool.hdmi_auto_switch);
 
         File dir = dir(ctx);
         File file = dir != null ? new File(dir, FILE_NAME) : null;
@@ -140,11 +164,14 @@ final class Config {
             dock = stringList(json, "dock_apps", dock);
             fillDock = bool(json, "fill_dock", fillDock);
             hidden = stringList(json, "hidden_apps", hidden);
+            extra = stringList(json, "extra_apps", extra);
             liveTv = string(json, "live_tv_package", liveTv);
             liveTvAction = string(json, "live_tv_action", liveTvAction);
             panelService = string(json, "source_panel_service", panelService);
             panelAction = string(json, "source_panel_action", panelAction);
             inputAction = string(json, "input_action", inputAction);
+            inputExtra = string(json, "input_extra", inputExtra);
+            inputMap = string(json, "input_map", inputMap);
             columns = integer(json, "columns", columns, 1, 8);
             rowsBelow = integer(json, "rows_below_dock", rowsBelow, 0, 3);
             animations = bool(json, "animations", animations);
@@ -158,6 +185,15 @@ final class Config {
             skyIntensity = integer(json, "sky_intensity", skyIntensity, 0, 100);
             settingsKeycodes = intArray(json, "settings_key_keycodes", settingsKeycodes);
             settingsKeyPanel = bool(json, "settings_key_panel", settingsKeyPanel);
+            standbyOn = bool(json, "standby", standbyOn);
+            standbyIdle = integer(json, "standby_idle_seconds", standbyIdle, StandbyConfig.MIN_IDLE, StandbyConfig.MAX_IDLE);
+            weatherLat = numberText(json, "weather_lat", weatherLat);
+            weatherLon = numberText(json, "weather_lon", weatherLon);
+            gitlabUrl = string(json, "gitlab_url", gitlabUrl);
+            gitlabToken = string(json, "gitlab_token", gitlabToken);
+            gitlabProjects = stringList(json, "gitlab_projects", gitlabProjects);
+            feedUrl = string(json, "feed_url", feedUrl);
+            hdmiAutoSwitch = bool(json, "hdmi_auto_switch", hdmiAutoSwitch);
         }
         // A theme push or reset invalidates choices made on the TV. On first use, remember the
         // current theme without clearing choices from an older launcher version.
@@ -175,11 +211,14 @@ final class Config {
         Festival festival = json == null ? Festival.NONE : Festival.parse(string(json, "festival", ""),
                 string(json, "festival_until", ""), string(json, "greeting", ""), string(json, "accent_color", ""));
 
-        return new Config(dock, fillDock, hidden, liveTv, liveTvAction, panelService, panelAction, inputAction,
+        return new Config(dock, fillDock, hidden, extra, liveTv, liveTvAction, panelService, panelAction, inputAction,
+                inputExtra, inputMap,
                 Math.max(1, columns), Math.max(0, rowsBelow), animations, advancedEffects,
                 shamsi, moduleCards, reducedMotion, vpn, homeSettings, background,
                 Math.max(0, Math.min(100, skyIntensity)), settingsKeycodes, settingsKeyPanel, wallpaper, applied,
-                festival);
+                festival,
+                StandbyConfig.from(standbyOn, standbyIdle, weatherLat, weatherLon, gitlabUrl, gitlabToken,
+                        gitlabProjects, feedUrl, hdmiAutoSwitch));
     }
 
     private static void syncThemeChoices(SharedPreferences choices, File dir, File config) {
@@ -237,6 +276,13 @@ final class Config {
 
     private static String string(JSONObject o, String key, String fallback) {
         Object v = o.opt(key);
+        return v instanceof String ? ((String) v).trim() : fallback;
+    }
+
+    /** A number or a string holding one, as text; StandbyConfig does the parsing and range check. */
+    private static String numberText(JSONObject o, String key, String fallback) {
+        Object v = o.opt(key);
+        if (v instanceof Number) return v.toString();
         return v instanceof String ? ((String) v).trim() : fallback;
     }
 

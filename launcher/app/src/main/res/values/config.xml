@@ -9,10 +9,10 @@
 
     <!-- Apps pinned to the dock row at the bottom, in this order. Missing apps are skipped. -->
     <string-array name="dock_apps">
-        <item>com.netflix.ninja</item>
-        <item>com.amazon.amazonvideo.livingroom</item>
-        <item>com.google.android.youtube.tv</item>
-        <item>in.startv.hotstar</item>
+        <item>com.xiaomi.mitv.tvplayer</item>
+        <item>com.xiaomi.mitv.appstore</item>
+        <item>com.xiaomi.mitv.smartshare</item>
+        <item>com.xiaomi.mitv.mediaexplorer</item>
     </string-array>
     <!-- With fewer dock_apps than columns (or a dock app that is not installed), the free dock slots take
          the first grid apps, so the dock never shows a gap. false leaves them empty (#162); a theme can
@@ -21,17 +21,26 @@
 
     <!-- Apps never shown as tiles (e.g. the Live TV app, which the Inputs menu already covers). -->
     <string-array name="hidden_apps">
-        <item>com.mediatek.wwtv.tvcenter</item>
+        <item>com.mitv.tvhome</item>
         <item>com.mitv.gallery</item>
     </string-array>
 
+    <!-- Activities shown as tiles although they declare neither LEANBACK_LAUNCHER nor LAUNCHER, as
+         package/activity. China-market Xiaomi firmware hides its app store, file explorer and TV player this
+         way (com.xiaomi.mitv.appstore/.MainActivity). Must be exported; one tile per package. Leave empty to omit. -->
+    <string-array name="extra_apps">
+        <item>com.xiaomi.mitv.tvplayer/.ExternalSourceActivity</item>
+        <item>com.xiaomi.mitv.appstore/.MainActivity</item>
+        <item>com.xiaomi.mitv.mediaexplorer/.NewScraperMainEntryActivity</item>
+    </string-array>
+
     <!-- The TV's Live TV / tuner app, offered at the end of the Inputs menu. Leave empty to omit. -->
-    <string name="live_tv_package" translatable="false">com.mediatek.wwtv.tvcenter</string>
+    <string name="live_tv_package" translatable="false">com.xiaomi.mitv.tvplayer</string>
 
     <!-- Some TVs give their Live TV app no leanback entry point at all, so `live_tv_package` above
          resolves to nothing (TCL Android TV 9 on China-market sets is one). This action is then sent
          to that package instead, and the app starts normally. Leave empty to omit. -->
-    <string name="live_tv_action" translatable="false"></string>
+    <string name="live_tv_action" translatable="false">com.xiaomi.mitv.tvplayer.ATV_PLAY</string>
 
     <!-- TVs with no TvInputManager have no HDMI list to read, but their own source-selection panel
          still switches inputs (TCL Android TV 9 again). When nothing could be listed, the Inputs menu
@@ -42,7 +51,12 @@
     <!-- Inputs menu: HDMI and AV rows normally open with ACTION_VIEW on the input's channel URI, which the
          Live TV app handles. Where nothing answers that, this action is sent with the same URI instead
          (XGIMI projectors: com.xgimi.action.hdmiPlayer). Leave empty to omit. -->
-    <string name="input_action" translatable="false"></string>
+    <string name="input_action" translatable="false">com.xiaomi.mitv.tvplayer.EXTSRC_PLAY</string>
+    <!-- Players that take no channel URI at all but an integer extra naming the source: the extra's name, and
+         the framework input id's last segment paired with that number. Xiaomi China-market firmware (Amlogic and
+         MediaTek alike): HDMI1..3 = 23..25, AV = 2, sent as `input` to live_tv_package. Leave empty to omit. -->
+    <string name="input_extra" translatable="false">input</string>
+    <string name="input_map" translatable="false">HW5=23,HW6=24,HW7=25,HW1=2</string>
 
     <!-- Remote buttons that open Settings, by Linux scancode (HOME_KEY_SERVICE=1 build-and-install.sh). Remotes
          that send KEYCODE_SETTINGS need no entry. Some send a code Android does not map: the Xiaomi/Fengmi
@@ -98,4 +112,21 @@
          sets its opacity. Around 60 reads clearly without hiding a wallpaper. Can also be set with
          "sky_intensity": 60 in a theme's config.json. -->
     <integer name="sky_intensity">0</integer>
+
+    <!-- Meeting-room standby screen (docs/superpowers/specs/2026-10-20-meeting-room-standby-design.md).
+         Off unless a theme turns it on: a clock, the date and weather, and a status bar with the latest
+         CI pipeline of each GitLab project, shown after standby_idle_seconds without a key press. -->
+    <bool name="standby">false</bool>
+    <integer name="standby_idle_seconds">30</integer>
+    <!-- Open-Meteo coordinates, decimal degrees as text; both empty keeps the weather off. -->
+    <string name="weather_lat" translatable="false"></string>
+    <string name="weather_lon" translatable="false"></string>
+    <!-- Self-hosted GitLab: base URL, a read_api token, and group/project paths for the status bar. -->
+    <string name="gitlab_url" translatable="false"></string>
+    <string name="gitlab_token" translatable="false"></string>
+    <string-array name="gitlab_projects" />
+    <!-- One JSON with everything (see StandbyData.parseFeed); when set, the two sources above are not used. -->
+    <string name="feed_url" translatable="false"></string>
+    <!-- Plugging a device into an HDMI port switches to it; unplugging brings Home back. -->
+    <bool name="hdmi_auto_switch">false</bool>
 </resources>
