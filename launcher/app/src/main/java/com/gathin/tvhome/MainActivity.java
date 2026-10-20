@@ -150,6 +150,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private PopupWindow openPopup;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
+    /** Meeting-room standby screen (config.xml standby). Every call goes through StandbyFeature.run. */
+    private StandbyView standby;
+    private StandbyConfig standbyConfig;
+    private StandbyFeed standbyFeed;
     /** Refreshes the network pill when the connection changes: at boot Wi-Fi often connects after Home is shown. */
     private final ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
         @Override
@@ -222,16 +226,29 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         liveTvPkg = cfg.liveTvPackage;
         liveTvAction = cfg.liveTvAction;
         inputAction = cfg.inputAction;
+        inputExtra = cfg.inputExtra;
+        inputMap = cfg.inputMap;
         sourcePanelService = cfg.sourcePanelService;
         sourcePanelAction = cfg.sourcePanelAction;
 
         root = findViewById(R.id.root);
-        inputExtra = cfg.inputExtra;
-        inputMap = cfg.inputMap;
         root.setBackgroundColor(cfg.backgroundColor);
         if (cfg.wallpaper != null) showWallpaper(cfg.wallpaper);
         sky = findViewById(R.id.sky);
         sky.setIntensity(cfg.skyIntensity);
+        standbyConfig = cfg.standby;
+        standby = findViewById(R.id.standby);
+        StandbyFeature.run(() -> {
+            standby.configure(standbyConfig);
+        });
+        if (standbyConfig.enabled && standbyConfig.hasSources()) {
+            standbyFeed = new StandbyFeed(standbyConfig, handler, snapshot -> StandbyFeature.run(() -> {
+                standby.render(snapshot);
+            }));
+            StandbyFeature.run(() -> {
+                standbyFeed.start();
+            });
+        }
         glass = findViewById(R.id.glass);
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
@@ -510,6 +527,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         updateInputsButton();
         sky.update();
         handler.postDelayed(minuteTick, MINUTE_MS);
+        StandbyFeature.run(() -> {
+            standby.touch();
+        });
         if (festive && diya != null) {
             diya.start();
             LocalDate today = LocalDate.now();
@@ -595,6 +615,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         heroName.animate().cancel();
         ambient.animate().cancel();
         handler.removeCallbacks(minuteTick);
+        StandbyFeature.run(() -> {
+            standby.cancel();
+        });
         if (diya != null) diya.stop();
         // Nothing of ours stays on screen over another app; an undecided prompt simply returns next time.
         if (cardPrompt != null) cardPrompt.dismiss();
@@ -617,6 +640,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (standbyFeed != null) standbyFeed.stop();
         ConnectivityManager cm = getSystemService(ConnectivityManager.class);
         TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
         if (tim != null) tim.unregisterCallback(inputCallback);
@@ -629,6 +653,25 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     public void onBackPressed() {
         // Home screen: Back goes nowhere.
+    }
+
+    /** The standby screen takes the key that wakes Home; any other key restarts its idle clock. */
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        boolean consumed = StandbyFeature.run(() -> standby.consumeKey(event), false);
+        if (consumed) return true;
+        StandbyFeature.run(() -> {
+            standby.touch();
+        });
+        return super.dispatchKeyEvent(event);
+    }
+
+    @Override
+    public void onUserInteraction() {
+        super.onUserInteraction();
+        StandbyFeature.run(() -> {
+            standby.touch();
+        });
     }
 
     // ---- glass highlight -------------------------------------------------------------------------
@@ -1216,6 +1259,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             Intent byTuner = new Intent(Intent.ACTION_VIEW)
                     .setDataAndType(TvContract.buildChannelUriForPassthroughInput(tunerId), "vnd.android.cursor.item/channel")
                     .setPackage(liveTvPkg);
+            // Only when the Live TV app takes a channel URI: Xiaomi's China-market player answers its own
+            // action (live_tv_action) and nothing else, so the launch intent found above stays.
+            if (byTuner.resolveActivity(getPackageManager()) != null) liveTv = byTuner;
         }
         if (liveTv != null) {
             if (rows.getChildCount() > 0) addSeparator(rows);
@@ -1259,9 +1305,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         panel.animate().alpha(1f).scaleY(1f).translationY(0f).setDuration(220)
                 .setInterpolator(new android.view.animation.DecelerateInterpolator(1.6f)).start();
     }
-            // Only when the Live TV app takes a channel URI: Xiaomi's China-market player answers its own
-            // action (live_tv_action) and nothing else, so the launch intent found above stays.
-            if (byTuner.resolveActivity(getPackageManager()) != null) liveTv = byTuner;
 
     private void addSeparator(LinearLayout rows) {
         View line = new View(this);
