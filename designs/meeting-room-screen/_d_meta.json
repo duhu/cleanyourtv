@@ -1,0 +1,45 @@
+{
+  "type": "design",
+  "designSystems": [],
+  "primaryDesignSystem": null,
+  "assets": {
+    "A 静态待机屏": {
+      "versions": [
+        {
+          "path": "A 静态待机屏.html",
+          "createdAt": "2026-10-20T10:40:57.009Z",
+          "status": "needs-review"
+        }
+      ]
+    },
+    "B 团队看板": {
+      "versions": [
+        {
+          "path": "B 团队看板.html",
+          "createdAt": "2026-10-20T10:40:57.035Z",
+          "status": "needs-review"
+        }
+      ]
+    },
+    "C 待机屏加状态条": {
+      "versions": [
+        {
+          "path": "C 待机屏加状态条.html",
+          "createdAt": "2026-10-20T10:40:57.062Z",
+          "status": "needs-review"
+        }
+      ]
+    },
+    "D HDMI接入状态": {
+      "versions": [
+        {
+          "path": "D HDMI接入状态.html",
+          "createdAt": "2026-10-20T10:40:57.086Z",
+          "status": "needs-review"
+        }
+      ]
+    }
+  },
+  "createdAt": "2026-10-20T10:40:57.010Z",
+  "updatedAt": "2026-10-20T10:40:57.086Z"
+}

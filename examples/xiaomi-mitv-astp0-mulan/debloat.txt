@@ -6,6 +6,7 @@
 # Apply:   TV_HOST=<tv ip> tools/disable.sh examples/xiaomi-mitv-astp0-mulan/debloat.txt
 # Undo:    TV_HOST=<tv ip> tools/restore.sh examples/xiaomi-mitv-astp0-mulan/debloat.txt com.mitv.tvhome
 # Everything is DISABLED, not uninstalled. Comment out any line you want to keep.
+# Office use: tools/theme.sh themes/meeting-room gives a standby clock and HDMI auto-switch (themes/README.md).
 #
 # Notes from this firmware:
 # - Only 65 packages, no Google apps and no third-party streaming apps preinstalled: the content

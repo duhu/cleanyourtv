@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>A 静态待机屏</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  /* Faint time-of-day backdrop like the launcher's sky_intensity, kept very dark. */
+  .sky { position: absolute; inset: 0; background: radial-gradient(900px 600px at 20% 25%, rgba(47,124,246,.18), transparent 70%); }
+  .top { position: absolute; left: 112px; top: 64px; display: flex; align-items: baseline; gap: 20px; }
+  .room { font-size: 30px; color: var(--t70); letter-spacing: .08em; }
+  .status { position: absolute; right: 112px; top: 72px; display: flex; gap: 16px; }
+  .clock { position: absolute; left: 100px; top: 250px; }
+  .clock .time { font-family: var(--latin); font-weight: 200; font-size: 400px; line-height: .9; letter-spacing: -.03em; }
+  .clock .date { margin-top: 36px; font-size: 44px; color: var(--t70); font-weight: 300; display: flex; gap: 28px; align-items: baseline; }
+  .clock .date .sep { width: 2px; height: 36px; background: var(--t25); align-self: center; }
+  .agenda { position: absolute; left: 1060px; top: 260px; width: 750px; display: flex; flex-direction: column; gap: 18px; }
+  .agenda h2 { margin: 0 0 10px 18px; font-size: 26px; font-weight: 400; color: var(--t55); letter-spacing: .08em; }
+  .item { display: grid; grid-template-columns: 150px 1fr; align-items: center; padding: 26px 32px; border-radius: 24px; }
+  .item .t { font-family: var(--latin); font-size: 34px; font-weight: 300; color: var(--t70); }
+  .item .n { font-size: 34px; font-weight: 400; color: var(--t90); }
+  .item .s { font-size: 24px; color: var(--t55); margin-top: 6px; }
+  .item.now { background: linear-gradient(var(--panel-top), var(--panel-bot)); border: 1px solid var(--glass-line); }
+  .item.now .t, .item.now .n { color: var(--t100); }
+  .item.now .s { color: var(--ok); }
+  .item.past { opacity: .35; }
+  .hint { position: absolute; left: 112px; bottom: 80px; display: flex; align-items: center; gap: 22px; font-size: 30px; color: var(--t55); }
+  .hint .icon { width: 44px; height: 44px; border: 2px solid var(--t40); border-radius: 10px; display: grid; place-items: center; font-family: var(--latin); font-size: 16px; color: var(--t55); letter-spacing: .05em; }
+  .weather { position: absolute; right: 112px; bottom: 80px; display: flex; align-items: baseline; gap: 18px; color: var(--t70); font-size: 30px; }
+  .weather .deg { font-family: var(--latin); font-size: 56px; font-weight: 200; color: var(--t90); }
+</style>
+</head>
+<body>
+  <div class="sky"></div>
+  <div class="top"><span class="room">3F · 大会议室</span></div>
+  <div class="status"><span class="pill"><span class="dot" style="background:var(--ok)"></span>空闲 · 可直接使用</span></div>
+
+  <div class="clock">
+    <div class="time">14:18</div>
+    <div class="date"><span class="num">10月20日</span><span class="sep"></span><span>星期二</span><span class="sep"></span><span>九月初十</span></div>
+  </div>
+
+  <div class="agenda">
+    <h2>今天</h2>
+    <div class="item past"><div class="t num">10:00</div><div><div class="n">前端周会</div></div></div>
+    <div class="item now"><div class="t num">14:30</div><div><div class="n">需求评审 · 投屏 v2</div><div class="s">12 分钟后开始 · 王敏 发起</div></div></div>
+    <div class="item"><div class="t num">16:00</div><div><div class="n">1:1 · 陈宇 / 林晓</div><div class="s">30 分钟</div></div></div>
+    <div class="item"><div class="t num">17:30</div><div><div class="n">每周复盘</div><div class="s">全员</div></div></div>
+  </div>
+
+  <div class="hint"><span class="icon">HDMI</span><span>插上 HDMI 线即可投屏，无需按遥控器</span></div>
+  <div class="weather"><span>多云</span><span class="deg">21°</span></div>
+</body>
+</html>

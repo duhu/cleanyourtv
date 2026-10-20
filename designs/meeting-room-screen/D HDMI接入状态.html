@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>D HDMI接入状态</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  /* Variant C dimmed underneath; the toast is what the launcher shows for ~1.5 s before switching to HDMI 1. */
+  .under { position: absolute; inset: 0; opacity: .22; }
+  .under .time { position: absolute; left: 0; right: 0; top: 200px; text-align: center; font-family: var(--latin); font-weight: 200; font-size: 440px; line-height: .9; letter-spacing: -.03em; }
+  .under .bar { position: absolute; left: 96px; right: 96px; bottom: 64px; height: 110px; }
+  .toast { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 820px; padding: 56px 64px; display: flex; align-items: center; gap: 40px; border-radius: 36px; }
+  .toast .icon { width: 110px; height: 110px; border: 3px solid var(--t90); border-radius: 22px; display: grid; place-items: center; font-family: var(--latin); font-size: 22px; letter-spacing: .06em; color: var(--t100); flex: none; text-align: center; line-height: 1.2; }
+  .toast .h { font-size: 42px; color: var(--t100); }
+  .toast .s { margin-top: 10px; font-size: 26px; color: var(--t55); }
+  .toast .prog { margin-top: 26px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; }
+  .toast .prog i { display: block; width: 62%; height: 100%; background: var(--t90); border-radius: 3px; }
+</style>
+</head>
+<body>
+  <div class="under"><div class="time">14:18</div><div class="bar panel"></div></div>
+  <div class="toast panel">
+    <div class="icon">HDMI 1</div>
+    <div style="flex:1">
+      <div class="h">检测到 HDMI 1，正在切换…</div>
+      <div class="s">拔掉线缆会自动回到待机屏</div>
+      <div class="prog"><i></i></div>
+    </div>
+  </div>
+</body>
+</html>

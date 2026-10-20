@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>C 待机屏加状态条</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .top { position: absolute; left: 112px; top: 64px; font-size: 30px; color: var(--t70); letter-spacing: .08em; }
+  .status { position: absolute; right: 112px; top: 72px; }
+  .center { position: absolute; left: 0; right: 0; top: 200px; display: flex; flex-direction: column; align-items: center; }
+  .time { font-family: var(--latin); font-weight: 200; font-size: 440px; line-height: .9; letter-spacing: -.03em; }
+  .date { margin-top: 28px; font-size: 42px; color: var(--t70); font-weight: 300; display: flex; gap: 28px; align-items: center; }
+  .date .sep { width: 2px; height: 34px; background: var(--t25); }
+  .next { margin-top: 70px; display: flex; align-items: center; gap: 26px; padding: 22px 40px; border-radius: 30px; }
+  .next .k { font-size: 24px; color: var(--t55); letter-spacing: .08em; }
+  .next .n { font-size: 34px; color: var(--t100); }
+  .next .c { font-family: var(--latin); font-size: 34px; font-weight: 300; color: var(--ok); }
+  .bar { position: absolute; left: 96px; right: 96px; bottom: 64px; height: 110px; display: grid; grid-template-columns: repeat(4, 1fr); align-items: center; padding: 0 20px; }
+  .cell { display: flex; align-items: center; gap: 18px; padding: 0 28px; font-size: 26px; color: var(--t90); border-left: 1px solid var(--t25); }
+  .cell:first-child { border-left: 0; }
+  .cell .k { color: var(--t55); font-size: 22px; letter-spacing: .06em; }
+  .cell .v { font-family: var(--latin); font-size: 40px; font-weight: 300; }
+  .cell .icon { display: inline-grid; place-items: center; width: 40px; height: 40px; border: 2px solid var(--t40); border-radius: 10px; font-family: var(--latin); font-size: 14px; letter-spacing: .05em; color: var(--t55); }
+</style>
+</head>
+<body>
+  <div class="top">3F · 大会议室</div>
+  <div class="status"><span class="pill"><span class="dot" style="background:var(--ok)"></span>空闲</span></div>
+
+  <div class="center">
+    <div class="time">14:18</div>
+    <div class="date"><span class="num">10月20日</span><span class="sep"></span><span>星期二</span><span class="sep"></span><span>多云 <span class="num">21°</span></span></div>
+    <div class="next panel"><span class="k">下一场</span><span class="n">需求评审 · 投屏 v2</span><span class="c">14:30 · 12 分钟后</span></div>
+  </div>
+
+  <div class="bar panel">
+    <div class="cell"><span class="icon">HDMI</span><span>插线即投屏</span></div>
+    <div class="cell"><span class="dot" style="background:var(--ok)"></span><span class="k">CI</span><span>main 通过</span></div>
+    <div class="cell"><span class="k">待合并</span><span class="v">7</span><span class="k">PR</span></div>
+    <div class="cell"><span class="k">值班</span><span>陈宇 · 林晓</span></div>
+  </div>
+</body>
+</html>
