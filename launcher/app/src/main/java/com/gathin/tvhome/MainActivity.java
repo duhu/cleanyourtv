@@ -35,8 +35,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.text.SpannableString;
+import android.util.Log;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.TextUtils;
@@ -154,6 +156,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private StandbyView standby;
     private StandbyConfig standbyConfig;
     private StandbyFeed standbyFeed;
+    /** HDMI auto-switch (config.xml hdmi_auto_switch); fed by inputCallback. */
+    private InputWatcher inputWatcher = new InputWatcher(false);
     /** Refreshes the network pill when the connection changes: at boot Wi-Fi often connects after Home is shown. */
     private final ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
         @Override
@@ -176,6 +180,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         @Override
         public void onInputRemoved(String inputId) {
             updateInputsButton();
+        }
+
+        @Override
+        public void onInputStateChanged(String inputId, int state) {
+            Log.d(StandbyFeature.TAG, "input " + inputId + " state " + state);
+            StandbyFeature.run(() -> {
+                onInputState(inputId, state);
+            });
         }
     };
     /** Listens for any VPN coming up or going down, even one this app's traffic is excluded from. */
@@ -428,6 +440,18 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         ConnectivityManager cm = getSystemService(ConnectivityManager.class);
         TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
         if (tim != null) tim.registerCallback(inputCallback, handler);
+        inputWatcher = new InputWatcher(standbyConfig.hdmiAutoSwitch);
+        if (tim != null && standbyConfig.hdmiAutoSwitch) {
+            StandbyFeature.run(() -> {
+                for (TvInputInfo info : tim.getTvInputList()) {
+                    if (info.isPassthroughInput() && info.getType() == TvInputInfo.TYPE_HDMI) {
+                        int state = tim.getInputState(info.getId());
+                        Log.d(StandbyFeature.TAG, "seed " + info.getId() + " state " + state);
+                        inputWatcher.seed(info.getId(), state);
+                    }
+                }
+            });
+        }
         if (cm != null) {
             cm.registerDefaultNetworkCallback(networkCallback);
             cm.registerNetworkCallback(new NetworkRequest.Builder()
@@ -1155,6 +1179,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      *  which the Live TV app handles; where nothing takes that, the configured `input_action` is sent
      *  with the same URI instead (XGIMI's HDMI player only answers com.xgimi.action.hdmiPlayer). */
     private void openInput(String inputId) {
+        inputWatcher.track(inputId);
         Uri uri = TvContract.buildChannelUriForPassthroughInput(inputId);
         Intent view = new Intent(Intent.ACTION_VIEW).setDataAndType(uri, "vnd.android.cursor.item/channel")
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -1176,6 +1201,42 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if (!liveTvPkg.isEmpty()) byAction.setPackage(liveTvPkg);
         }
         open(byAction);
+    }
+
+    /** An HDMI port changed state: plug-in switches to it after the toast, unplug of our port returns Home. */
+    private void onInputState(String inputId, int state) {
+        TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
+        if (tim == null) return;
+        TvInputInfo info = tim.getTvInputInfo(inputId);
+        boolean hdmi = info != null && info.isPassthroughInput() && info.getType() == TvInputInfo.TYPE_HDMI;
+        InputWatcher.Action action = inputWatcher.onState(inputId, hdmi, state, SystemClock.elapsedRealtime());
+        if (action.kind == InputWatcher.Kind.SWITCH) {
+            CharSequence l = info.loadLabel(this);
+            String label = l == null ? "HDMI" : l.toString();
+            if (!label.toUpperCase(Locale.ROOT).contains("HDMI")) label = "HDMI " + label;
+            Log.d(StandbyFeature.TAG, "switching to " + action.inputId + " (" + label + ")");
+            standby.showHdmiToast(label, () -> StandbyFeature.run(() -> {
+                if (!openInputChecked(action.inputId)) inputWatcher.switchFailed();
+            }));
+        } else if (action.kind == InputWatcher.Kind.HOME) {
+            Log.d(StandbyFeature.TAG, "unplugged " + inputId + ", back to Home");
+            startActivity(new Intent(this, MainActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+        }
+    }
+
+    /** openInput, reporting whether something handled the switch. */
+    private boolean openInputChecked(String inputId) {
+        Uri uri = TvContract.buildChannelUriForPassthroughInput(inputId);
+        Intent view = new Intent(Intent.ACTION_VIEW).setDataAndType(uri, "vnd.android.cursor.item/channel")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (view.resolveActivity(getPackageManager()) != null) {
+            openInput(inputId);
+            return true;
+        }
+        if (inputAction.isEmpty() || mappedInput(inputId) == null) return false;
+        openInput(inputId);
+        return true;
     }
 
     /** The input_map value for this input id ("HW5=23,HW6=24"; the id's last path segment is matched), or null. */
