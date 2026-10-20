@@ -4,6 +4,7 @@
   "extra_apps": ["com.xiaomi.mitv.tvplayer/.ExternalSourceActivity", "com.xiaomi.mitv.appstore/.MainActivity", "com.xiaomi.mitv.mediaexplorer/.NewScraperMainEntryActivity"],
   "standby": true,
   "standby_idle_seconds": 30,
+  "standby_flip_clock": true,
   "weather_lat": 31.30,
   "weather_lon": 120.58,
   "gitlab_url": "https://git.17usoft.com",

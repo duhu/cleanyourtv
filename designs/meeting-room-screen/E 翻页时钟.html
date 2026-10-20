@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>E 翻页时钟</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  /* Same screen as C, with the clock as split-flap cards (FlipClockView): 150×220dp cards, 14dp gap,
+     14dp corners, a 3dp split, Outfit Light digits. The last card is caught mid-flip (9 → 0). */
+  .center { position: absolute; left: 0; right: 0; top: 176px; display: flex; flex-direction: column; align-items: center; }
+  .clock { display: flex; align-items: center; }
+  .card { position: relative; width: 300px; height: 440px; margin-left: 28px; perspective: 2400px; }
+  .card:first-child { margin-left: 0; }
+  .half { position: absolute; left: 0; width: 300px; height: 217px; overflow: hidden; background: #1c1c1f; }
+  .half.top { top: 0; border-radius: 28px 28px 0 0; }
+  .half.bot { bottom: 0; border-radius: 0 0 28px 28px; }
+  .half span { position: absolute; left: 0; width: 300px; height: 440px; line-height: 440px; text-align: center;
+    font-family: var(--latin); font-weight: 300; font-size: 384px; color: #f2f2f2; }
+  .half.top span { top: 0; }
+  .half.bot span { top: -223px; }
+  .fold { transform-origin: bottom; transform: rotateX(-58deg); background: #141416; z-index: 2; }
+  .fold span { color: #d8d8d8; }
+  .colon { width: 112px; height: 440px; position: relative; }
+  .colon i { position: absolute; left: 49px; width: 14px; height: 14px; border-radius: 50%; background: #d9d9d9; }
+  .colon i:first-child { top: 150px; } .colon i:last-child { top: 276px; }
+  .date { margin-top: 28px; font-size: 42px; color: var(--t70); font-weight: 300; display: flex; gap: 28px; align-items: center; }
+  .date .sep { width: 2px; height: 34px; background: var(--t25); }
+  .bar { position: absolute; left: 96px; right: 96px; bottom: 64px; height: 110px; display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; padding: 0 20px; }
+  .cell { display: flex; align-items: center; gap: 18px; padding: 0 28px; font-size: 26px; color: var(--t90); border-left: 1px solid var(--t25); }
+  .cell:first-child { border-left: 0; }
+  .cell .k { color: var(--t55); font-size: 22px; }
+  .cell .icon { display: inline-grid; place-items: center; width: 40px; height: 40px; border: 2px solid var(--t40); border-radius: 10px; font-family: var(--latin); font-size: 14px; letter-spacing: .05em; color: var(--t55); }
+</style>
+</head>
+<body>
+  <div class="center">
+    <div class="clock">
+      <div class="card"><div class="half top"><span>1</span></div><div class="half bot"><span>1</span></div></div>
+      <div class="card"><div class="half top"><span>4</span></div><div class="half bot"><span>4</span></div></div>
+      <div class="colon"><i></i><i></i></div>
+      <div class="card"><div class="half top"><span>2</span></div><div class="half bot"><span>2</span></div></div>
+      <div class="card">
+        <div class="half top"><span>0</span></div>
+        <div class="half bot"><span>9</span></div>
+        <div class="half top fold"><span>9</span></div>
+      </div>
+    </div>
+    <div class="date"><span class="num">10月20日</span><span class="sep"></span><span>星期二</span><span class="sep"></span><span>多云 <span class="num">21°</span></span></div>
+  </div>
+
+  <div class="bar panel">
+    <div class="cell"><span class="icon">HDMI</span><span>插线即投屏</span></div>
+    <div class="cell"><span class="dot" style="background:var(--ok)"></span><span>placeholder-one</span><span class="k">12 分钟前</span></div>
+    <div class="cell"><span class="dot" style="background:var(--bad)"></span><span>placeholder-two</span><span class="k">2 小时前</span></div>
+  </div>
+</body>
+</html>

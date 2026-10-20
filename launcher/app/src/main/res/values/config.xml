@@ -118,6 +118,8 @@
          CI pipeline of each GitLab project, shown after standby_idle_seconds without a key press. -->
     <bool name="standby">false</bool>
     <integer name="standby_idle_seconds">30</integer>
+    <!-- The standby clock as split-flap cards that flip on every minute change; false shows plain digits. -->
+    <bool name="standby_flip_clock">true</bool>
     <!-- Open-Meteo coordinates, decimal degrees as text; both empty keeps the weather off. -->
     <string name="weather_lat" translatable="false"></string>
     <string name="weather_lon" translatable="false"></string>

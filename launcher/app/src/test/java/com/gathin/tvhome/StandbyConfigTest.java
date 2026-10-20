@@ -14,14 +14,15 @@ public class StandbyConfigTest {
 
     private static StandbyConfig full() {
         return StandbyConfig.from(true, 30, "31.30", "120.58", "https://git.example.com/", "tok",
-                Arrays.asList("team/one", " team/two ", ""), "", true);
+                Arrays.asList("team/one", " team/two ", ""), "", true, true);
     }
 
     @Test
     public void everythingOffByDefault() {
-        StandbyConfig c = StandbyConfig.from(false, 30, "", "", "", "", Collections.emptyList(), "", false);
+        StandbyConfig c = StandbyConfig.from(false, 30, "", "", "", "", Collections.emptyList(), "", false, true);
         assertFalse(c.enabled);
         assertFalse(c.hdmiAutoSwitch);
+        assertTrue(c.flipClock);
         assertFalse(c.hasWeather());
         assertFalse(c.hasGitlab());
         assertFalse(c.hasFeed());
@@ -46,32 +47,32 @@ public class StandbyConfigTest {
 
     @Test
     public void idleSecondsClampToRange() {
-        assertEquals(5, StandbyConfig.from(true, 1, "", "", "", "", Collections.emptyList(), "", false).idleSeconds);
-        assertEquals(3600, StandbyConfig.from(true, 99999, "", "", "", "", Collections.emptyList(), "", false).idleSeconds);
+        assertEquals(5, StandbyConfig.from(true, 1, "", "", "", "", Collections.emptyList(), "", false, true).idleSeconds);
+        assertEquals(3600, StandbyConfig.from(true, 99999, "", "", "", "", Collections.emptyList(), "", false, true).idleSeconds);
     }
 
     @Test
     public void weatherNeedsBothCoordinatesAsNumbers() {
-        assertFalse(StandbyConfig.from(true, 30, "31.3", "", "", "", Collections.emptyList(), "", false).hasWeather());
-        assertFalse(StandbyConfig.from(true, 30, "north", "120", "", "", Collections.emptyList(), "", false).hasWeather());
-        assertFalse(StandbyConfig.from(true, 30, "91", "120", "", "", Collections.emptyList(), "", false).hasWeather());
-        assertTrue(StandbyConfig.from(true, 30, "-33.9", "151.2", "", "", Collections.emptyList(), "", false).hasWeather());
+        assertFalse(StandbyConfig.from(true, 30, "31.3", "", "", "", Collections.emptyList(), "", false, true).hasWeather());
+        assertFalse(StandbyConfig.from(true, 30, "north", "120", "", "", Collections.emptyList(), "", false, true).hasWeather());
+        assertFalse(StandbyConfig.from(true, 30, "91", "120", "", "", Collections.emptyList(), "", false, true).hasWeather());
+        assertTrue(StandbyConfig.from(true, 30, "-33.9", "151.2", "", "", Collections.emptyList(), "", false, true).hasWeather());
     }
 
     @Test
     public void gitlabNeedsUrlTokenAndProjects() {
-        assertFalse(StandbyConfig.from(true, 30, "", "", "https://g", "REPLACE_ME", Arrays.asList("a/b"), "", false).hasGitlab());
-        assertFalse(StandbyConfig.from(true, 30, "", "", "https://g", " ", Arrays.asList("a/b"), "", false).hasGitlab());
-        assertFalse(StandbyConfig.from(true, 30, "", "", "", "tok", Arrays.asList("a/b"), "", false).hasGitlab());
-        assertFalse(StandbyConfig.from(true, 30, "", "", "https://g", "tok", Collections.singletonList(" "), "", false).hasGitlab());
-        assertFalse(StandbyConfig.from(true, 30, "", "", "ftp://g", "tok", Arrays.asList("a/b"), "", false).hasGitlab());
+        assertFalse(StandbyConfig.from(true, 30, "", "", "https://g", "REPLACE_ME", Arrays.asList("a/b"), "", false, true).hasGitlab());
+        assertFalse(StandbyConfig.from(true, 30, "", "", "https://g", " ", Arrays.asList("a/b"), "", false, true).hasGitlab());
+        assertFalse(StandbyConfig.from(true, 30, "", "", "", "tok", Arrays.asList("a/b"), "", false, true).hasGitlab());
+        assertFalse(StandbyConfig.from(true, 30, "", "", "https://g", "tok", Collections.singletonList(" "), "", false, true).hasGitlab());
+        assertFalse(StandbyConfig.from(true, 30, "", "", "ftp://g", "tok", Arrays.asList("a/b"), "", false, true).hasGitlab());
     }
 
     @Test
     public void aFeedUrlIsASourceOnItsOwn() {
-        StandbyConfig c = StandbyConfig.from(true, 30, "", "", "", "", Collections.emptyList(), "http://10.0.0.5/status.json", false);
+        StandbyConfig c = StandbyConfig.from(true, 30, "", "", "", "", Collections.emptyList(), "http://10.0.0.5/status.json", false, true);
         assertTrue(c.hasFeed());
         assertTrue(c.hasSources());
-        assertFalse(StandbyConfig.from(true, 30, "", "", "", "", Collections.emptyList(), "status.json", false).hasFeed());
+        assertFalse(StandbyConfig.from(true, 30, "", "", "", "", Collections.emptyList(), "status.json", false, true).hasFeed());
     }
 }

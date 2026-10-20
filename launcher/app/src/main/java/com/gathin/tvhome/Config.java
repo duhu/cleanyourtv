@@ -148,6 +148,7 @@ final class Config {
         boolean applied = false;
         boolean standbyOn = res.getBoolean(R.bool.standby);
         int standbyIdle = res.getInteger(R.integer.standby_idle_seconds);
+        boolean flipClock = res.getBoolean(R.bool.standby_flip_clock);
         String weatherLat = res.getString(R.string.weather_lat).trim();
         String weatherLon = res.getString(R.string.weather_lon).trim();
         String gitlabUrl = res.getString(R.string.gitlab_url).trim();
@@ -187,6 +188,7 @@ final class Config {
             settingsKeyPanel = bool(json, "settings_key_panel", settingsKeyPanel);
             standbyOn = bool(json, "standby", standbyOn);
             standbyIdle = integer(json, "standby_idle_seconds", standbyIdle, StandbyConfig.MIN_IDLE, StandbyConfig.MAX_IDLE);
+            flipClock = bool(json, "standby_flip_clock", flipClock);
             weatherLat = numberText(json, "weather_lat", weatherLat);
             weatherLon = numberText(json, "weather_lon", weatherLon);
             gitlabUrl = string(json, "gitlab_url", gitlabUrl);
@@ -218,7 +220,7 @@ final class Config {
                 Math.max(0, Math.min(100, skyIntensity)), settingsKeycodes, settingsKeyPanel, wallpaper, applied,
                 festival,
                 StandbyConfig.from(standbyOn, standbyIdle, weatherLat, weatherLon, gitlabUrl, gitlabToken,
-                        gitlabProjects, feedUrl, hdmiAutoSwitch));
+                        gitlabProjects, feedUrl, hdmiAutoSwitch, flipClock));
     }
 
     private static void syncThemeChoices(SharedPreferences choices, File dir, File config) {

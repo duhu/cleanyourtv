@@ -54,6 +54,7 @@ is ignored, and a file that doesn't parse is ignored as a whole, so a theme can 
 | `settings_key_keycodes` | list of keycodes | Remote buttons that open Settings, for `HomeKeyService` (TCL Google TV gear: `[83]`) |
 | `settings_key_panel` | bool | Those buttons open a small quick settings panel (TV settings, Display, Network, Apps, Launcher settings) instead of the TV's Settings |
 | `standby` | bool | Standby screen: a clock, the date and weather, and a status bar, fading in over Home after `standby_idle_seconds` (5 to 3600, default 30) without a key press; any key brings Home back and is swallowed |
+| `standby_flip_clock` | bool | The standby clock as split-flap cards that flip over on every minute change (true by default); false shows plain thin digits |
 | `weather_lat`, `weather_lon` | number | Open-Meteo coordinates for the weather on the standby screen; both needed, no API key |
 | `gitlab_url`, `gitlab_token`, `gitlab_projects` | string, string, list of `group/project` | Latest pipeline of each project in the status bar, fetched every 5 minutes with a read-only (`read_api`) token. The token sits in plain text in the TV's config.json; `REPLACE_ME` keeps the source off |
 | `feed_url` | string | One JSON with everything instead of the two sources above, fetched every minute: `{"weather":{"temp_c":21,"text":"多云"},"ci":[{"name":"x","status":"success","updated_at":"2026-10-20T06:12:00Z"}]}` |

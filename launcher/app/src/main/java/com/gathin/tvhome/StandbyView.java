@@ -29,7 +29,8 @@ public class StandbyView extends FrameLayout {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Random random = new Random();
-    private final View layer, content, toast, toastProgress;
+    private final View layer, content, toast, toastProgress, plainClock;
+    private final FlipClockView flipClock;
     private final TextView weather, toastBadge, toastTitle;
     private final View weatherSep;
     private final LinearLayout bar;
@@ -58,6 +59,8 @@ public class StandbyView extends FrameLayout {
         density = getResources().getDisplayMetrics().density;
         layer = findViewById(R.id.standbyLayer);
         content = findViewById(R.id.standbyContent);
+        plainClock = findViewById(R.id.standbyClock);
+        flipClock = findViewById(R.id.standbyFlip);
         weather = findViewById(R.id.standbyWeather);
         weatherSep = findViewById(R.id.standbyWeatherSep);
         bar = findViewById(R.id.standbyBar);
@@ -69,9 +72,13 @@ public class StandbyView extends FrameLayout {
         setVisibility(GONE);
     }
 
-    void configure(StandbyConfig cfg) {
+    /** @param animations false (the launcher's animations or reduced_motion setting) sets the flip clock without flipping */
+    void configure(StandbyConfig cfg, boolean animations) {
         enabled = cfg.enabled;
         idleMs = cfg.idleSeconds * 1000L;
+        flipClock.setAnimated(animations);
+        flipClock.setVisibility(cfg.flipClock ? VISIBLE : GONE);
+        plainClock.setVisibility(cfg.flipClock ? GONE : VISIBLE);
     }
 
     /** A key press or other interaction on Home: the idle clock starts over. */
@@ -87,6 +94,7 @@ public class StandbyView extends FrameLayout {
         handler.removeCallbacks(minuteTick);
         if (showing) {
             showing = false;
+            flipClock.stop();
             layer.animate().cancel();
             layer.setAlpha(0f);
             layer.setVisibility(GONE);
@@ -161,6 +169,7 @@ public class StandbyView extends FrameLayout {
         content.setTranslationX(0f);
         content.setTranslationY(0f);
         renderBar();
+        if (flipClock.getVisibility() == VISIBLE) flipClock.start();
         layer.animate().alpha(1f).setDuration(FADE_IN_MS).start();
         handler.postDelayed(minuteTick, MINUTE_MS);
     }
@@ -169,6 +178,7 @@ public class StandbyView extends FrameLayout {
         if (!showing) return;
         showing = false;
         handler.removeCallbacks(minuteTick);
+        flipClock.stop();
         layer.animate().alpha(0f).setDuration(FADE_OUT_MS).withEndAction(() -> {
             layer.setVisibility(GONE);
             if (toast.getVisibility() != VISIBLE) setVisibility(GONE);

@@ -27,9 +27,11 @@ final class StandbyConfig {
     /** One JSON for everything; when set, the weather and GitLab sources are not used. */
     final String feedUrl;
     final boolean hdmiAutoSwitch;
+    /** Split-flap clock cards instead of plain digits. */
+    final boolean flipClock;
 
     private StandbyConfig(boolean enabled, int idleSeconds, double lat, double lon, String gitlabUrl, String gitlabToken,
-                          List<String> gitlabProjects, String feedUrl, boolean hdmiAutoSwitch) {
+                          List<String> gitlabProjects, String feedUrl, boolean hdmiAutoSwitch, boolean flipClock) {
         this.enabled = enabled;
         this.idleSeconds = idleSeconds;
         this.weatherLat = lat;
@@ -39,10 +41,11 @@ final class StandbyConfig {
         this.gitlabProjects = Collections.unmodifiableList(gitlabProjects);
         this.feedUrl = feedUrl;
         this.hdmiAutoSwitch = hdmiAutoSwitch;
+        this.flipClock = flipClock;
     }
 
     static StandbyConfig from(boolean enabled, int idleSeconds, String lat, String lon, String gitlabUrl, String gitlabToken,
-                              List<String> gitlabProjects, String feedUrl, boolean hdmiAutoSwitch) {
+                              List<String> gitlabProjects, String feedUrl, boolean hdmiAutoSwitch, boolean flipClock) {
         int idle = Math.max(MIN_IDLE, Math.min(MAX_IDLE, idleSeconds));
         double la = coordinate(lat, 90), lo = coordinate(lon, 180);
         if (Double.isNaN(la) || Double.isNaN(lo)) la = lo = Double.NaN;
@@ -58,7 +61,7 @@ final class StandbyConfig {
                 if (!t.isEmpty()) projects.add(t);
             }
         }
-        return new StandbyConfig(enabled, idle, la, lo, url, token, projects, httpUrl(feedUrl), hdmiAutoSwitch);
+        return new StandbyConfig(enabled, idle, la, lo, url, token, projects, httpUrl(feedUrl), hdmiAutoSwitch, flipClock);
     }
 
     boolean hasWeather() {

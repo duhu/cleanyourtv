@@ -38,8 +38,22 @@
           "status": "needs-review"
         }
       ]
+    },
+    "E 翻页时钟": {
+      "versions": [
+        {
+          "path": "E 翻页时钟.html",
+          "createdAt": "2026-10-20T11:39:17.983Z",
+          "status": "needs-review",
+          "subtitle": "待机屏 C 的时钟改成翻页卡片（FlipClockView）",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ]
     }
   },
   "createdAt": "2026-10-20T10:40:57.010Z",
-  "updatedAt": "2026-10-20T10:40:57.086Z"
+  "updatedAt": "2026-10-20T11:39:17.983Z"
 }

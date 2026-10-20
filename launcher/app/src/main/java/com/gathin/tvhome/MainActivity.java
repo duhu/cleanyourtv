@@ -251,7 +251,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         standbyConfig = cfg.standby;
         standby = findViewById(R.id.standby);
         StandbyFeature.run(() -> {
-            standby.configure(standbyConfig);
+            standby.configure(standbyConfig, animations && !reducedMotion);
         });
         if (standbyConfig.enabled && standbyConfig.hasSources()) {
             standbyFeed = new StandbyFeed(standbyConfig, handler, snapshot -> StandbyFeature.run(() -> {
