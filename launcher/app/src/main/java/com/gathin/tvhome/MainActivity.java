@@ -161,6 +161,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private StandbyFeed standbyFeed;
     /** HDMI auto-switch (config.xml hdmi_auto_switch); fed by inputCallback. */
     private InputWatcher inputWatcher = new InputWatcher(false);
+    /** Quick-switch tiles for plugged-in HDMI ports (config.xml hdmi_tiles); focus lands on the first one. */
+    private boolean hdmiTiles;
     /** Refreshes the network pill when the connection changes: at boot Wi-Fi often connects after Home is shown. */
     private final ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
         @Override
@@ -239,6 +241,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         showGreeting = cfg.showGreeting;
         capsuleTiles = "capsule".equals(cfg.tileStyle);
         dimTopButtons = cfg.dimTopButtons;
+        hdmiTiles = cfg.hdmiTiles;
         festival = cfg.festival;
         festive = festival.active(LocalDate.now());
         liveTvPkg = cfg.liveTvPackage;
@@ -629,7 +632,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         final int returnSlot = lastFocused;
         final List<Cards.Card> none = Collections.emptyList();
         cards = moduleCards ? CardFeature.run(() -> Cards.discover(this, hiddenApps, Cards.load(Cards.storeFile(this))), none) : none;
-        adapter.reload(cards.isEmpty() ? none : CardFeature.run(() -> Cards.shown(cards), none));
+        final List<HdmiTiles.Port> noPorts = Collections.emptyList();
+        adapter.reload(cards.isEmpty() ? none : CardFeature.run(() -> Cards.shown(cards), none),
+                hdmiTiles ? StandbyFeature.run(this::connectedHdmiPorts, noPorts) : noPorts);
         lastFocusedKey = returnKey;
         lastFocused = returnSlot;
     }
@@ -642,7 +647,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         final String returnKey = lastFocusedKey;
         final int returnSlot = lastFocused;
         grid.post(() -> {
-            int pos = adapter.positionOf(returnKey);
+            // A plugged-in HDMI port is the likely next step in a meeting room: one OK away, every time Home shows.
+            int input = hdmiTiles ? adapter.firstInputPosition() : -1;
+            int pos = input >= 0 ? input : adapter.positionOf(returnKey);
             focusTile(pos >= 0 ? pos : returnSlot);
             tilesReady = true;
             showCardPrompt();
@@ -1230,17 +1237,36 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         open(byAction);
     }
 
+    /** The HDMI ports with a device plugged in, for the quick-switch tiles (config.xml hdmi_tiles). */
+    private List<HdmiTiles.Port> connectedHdmiPorts() {
+        TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
+        List<HdmiTiles.Port> ports = new ArrayList<>();
+        List<Integer> states = new ArrayList<>();
+        if (tim == null) return ports;
+        for (TvInputInfo info : tim.getTvInputList()) {
+            if (!info.isPassthroughInput() || info.getType() != TvInputInfo.TYPE_HDMI) continue;
+            ports.add(new HdmiTiles.Port(info.getId(), HdmiTiles.label(info.loadLabel(this))));
+            states.add(tim.getInputState(info.getId()));
+        }
+        return HdmiTiles.connected(ports, states);
+    }
+
+    @Override
+    public void onOpenInput(String inputId) {
+        openInput(inputId);
+    }
+
     /** An HDMI port changed state: plug-in switches to it after the toast, unplug of our port returns Home. */
     private void onInputState(String inputId, int state) {
         TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
         if (tim == null) return;
         TvInputInfo info = tim.getTvInputInfo(inputId);
         boolean hdmi = info != null && info.isPassthroughInput() && info.getType() == TvInputInfo.TYPE_HDMI;
+        // The quick-switch tile for this port appears or goes, and focus follows (restoreFocus prefers it).
+        if (hdmi && hdmiTiles) reloadApps(false);
         InputWatcher.Action action = inputWatcher.onState(inputId, hdmi, state, SystemClock.elapsedRealtime());
         if (action.kind == InputWatcher.Kind.SWITCH) {
-            CharSequence l = info.loadLabel(this);
-            String label = l == null ? "HDMI" : l.toString();
-            if (!label.toUpperCase(Locale.ROOT).contains("HDMI")) label = "HDMI " + label;
+            String label = HdmiTiles.label(info.loadLabel(this));
             Log.d(StandbyFeature.TAG, "switching to " + action.inputId + " (" + label + ")");
             standby.showHdmiToast(label, () -> StandbyFeature.run(() -> {
                 if (!openInputChecked(action.inputId)) inputWatcher.switchFailed();

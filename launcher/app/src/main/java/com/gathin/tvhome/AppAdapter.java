@@ -52,10 +52,14 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
 
         /** Called for a D-pad direction key on a tile. Return true when handled (focus stays put). */
         boolean onTileVerticalKey(int position, int keyCode);
+
+        /** An HDMI quick-switch tile was clicked (config.xml hdmi_tiles). */
+        default void onOpenInput(String inputId) {
+        }
     }
 
     static final class Entry {
-        static final int APP = 0, HOME_SETTINGS = 1, CARD = 2, EMPTY = 3;
+        static final int APP = 0, HOME_SETTINGS = 1, CARD = 2, EMPTY = 3, INPUT = 4;
 
         final int kind;
         final String label;
@@ -67,12 +71,20 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         final String name;
         /** Ambient glow colour; 0 until sampled from the banner, or the card's accent from the start. */
         int ambient;
+        /** The TvInputManager input id of an INPUT tile; null for the rest. */
+        final String inputId;
 
         Entry(String label, ComponentName component, Drawable banner, Drawable icon) {
             this(APP, label, component, banner, icon, null, 0);
         }
 
         Entry(int kind, String label, ComponentName component, Drawable banner, Drawable icon, String caption, int accent) {
+            this(kind, label, component, banner, icon, caption, accent, null);
+        }
+
+        Entry(int kind, String label, ComponentName component, Drawable banner, Drawable icon, String caption, int accent,
+              String inputId) {
+            this.inputId = inputId;
             this.kind = kind;
             this.label = label;
             this.component = component;
@@ -159,6 +171,14 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
      * so focus follows it); hidden_apps wins over a card, and a card's package in dock_apps takes that slot.
      */
     void reload(List<Cards.Card> cards) {
+        reload(cards, Collections.emptyList());
+    }
+
+    /**
+     * Rebuilds the tiles, with a quick-switch tile for each of these HDMI ports right after the dock
+     * apps (config.xml hdmi_tiles); they count as dock tiles, so the row keeps its layout rules.
+     */
+    void reload(List<Cards.Card> cards, List<HdmiTiles.Port> ports) {
         PackageManager pm = ctx.getPackageManager();
         Intent probe = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LEANBACK_LAUNCHER);
         List<ResolveInfo> found = new ArrayList<>(pm.queryIntentActivities(probe, 0));
@@ -226,6 +246,10 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
         }
         docked = 0;
         while (docked < fresh.size() && favourites.contains(fresh.get(docked).pkg)) docked++;
+        for (HdmiTiles.Port port : ports) {
+            fresh.add(docked++, new Entry(Entry.INPUT, port.label, new ComponentName(ctx, "hdmi-input:" + port.inputId),
+                    null, ctx.getDrawable(R.drawable.hdmi_tile_icon), null, 0, port.inputId));
+        }
         emptySlots = DockSlots.empty(docked, dockSize, fresh.size(), fillDock);
         for (int i = 0; i < emptySlots; i++) {
             fresh.add(docked + i, new Entry(Entry.EMPTY, "", new ComponentName(ctx, "empty-dock-slot-" + i),
@@ -312,7 +336,13 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
             h.label.setText(e.label);
             h.label.setVisibility(View.VISIBLE);
         }
+        // The HDMI tile's icon draws its own disc and a status dot past its edge; apps get the round crop.
+        if (capsule) h.icon.setClipToOutline(e.kind != Entry.INPUT);
         h.card.setOnClickListener(v -> launch(e));
+        if (e.kind == Entry.INPUT) {
+            h.card.setOnLongClickListener(null);   // no app behind it to show details for
+            return;
+        }
         h.card.setOnLongClickListener(v -> {
             Intent i = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + e.pkg));
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -326,6 +356,10 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
 
     /** Opens the tile's activity by explicit component, with no extras: a card can name nothing else. */
     private void launch(Entry e) {
+        if (e.kind == Entry.INPUT) {
+            if (listener != null) listener.onOpenInput(e.inputId);
+            return;
+        }
         if (e.kind == Entry.HOME_SETTINGS) {
             ctx.startActivity(new Intent(ctx, HomeSettingsActivity.class)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -358,6 +392,12 @@ public class AppAdapter extends RecyclerView.Adapter<AppAdapter.Holder> {
     /** Stable key for the app at a position (its component), or null. */
     String keyAt(int position) {
         return position >= 0 && position < items.size() ? items.get(position).component.flattenToShortString() : null;
+    }
+
+    /** Position of the first HDMI quick-switch tile, or -1 when no port has a device plugged in. */
+    int firstInputPosition() {
+        for (int i = 0; i < items.size(); i++) if (items.get(i).kind == Entry.INPUT) return i;
+        return -1;
     }
 
     /** Position of the app with this key, or -1 when it is gone. */

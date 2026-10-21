@@ -143,4 +143,6 @@
     <string name="feed_url" translatable="false"></string>
     <!-- Plugging a device into an HDMI port switches to it; unplugging brings Home back. -->
     <bool name="hdmi_auto_switch">false</bool>
+    <!-- A quick-switch tile in the dock row for every HDMI port with a device plugged in; focus lands on it. -->
+    <bool name="hdmi_tiles">false</bool>
 </resources>

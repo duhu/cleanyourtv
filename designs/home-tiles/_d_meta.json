@@ -16,8 +16,22 @@
           }
         }
       ]
+    },
+    "F HDMI 快切胶囊": {
+      "versions": [
+        {
+          "path": "F HDMI快切胶囊.html",
+          "createdAt": "2026-10-21T01:59:58.432Z",
+          "status": "approved",
+          "subtitle": "插着线时 dock 行多一个 HDMI 胶囊，绿点=已接设备，焦点默认落在它上面",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ]
     }
   },
   "createdAt": "2026-10-20T12:09:53.184Z",
-  "updatedAt": "2026-10-20T12:09:53.184Z"
+  "updatedAt": "2026-10-21T01:59:58.432Z"
 }

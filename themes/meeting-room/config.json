@@ -15,5 +15,6 @@
   "gitlab_url": "https://git.17usoft.com",
   "gitlab_token": "REPLACE_ME",
   "gitlab_projects": ["team/placeholder-one", "team/placeholder-two"],
-  "hdmi_auto_switch": true
+  "hdmi_auto_switch": true,
+  "hdmi_tiles": true
 }

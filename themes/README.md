@@ -63,6 +63,7 @@ is ignored, and a file that doesn't parse is ignored as a whole, so a theme can 
 | `gitlab_url`, `gitlab_token`, `gitlab_projects` | string, string, list of `group/project` | Latest pipeline of each project in the status bar, fetched every 5 minutes with a read-only (`read_api`) token. The token sits in plain text in the TV's config.json; `REPLACE_ME` keeps the source off |
 | `feed_url` | string | One JSON with everything instead of the two sources above, fetched every minute: `{"weather":{"temp_c":21,"text":"多云"},"ci":[{"name":"x","status":"success","updated_at":"2026-10-20T06:12:00Z"}]}` |
 | `hdmi_auto_switch` | bool | Plugging a device into an HDMI port switches to it after a short toast; unplugging it brings Home back. Only changes count: a cable already in at boot does nothing |
+| `hdmi_tiles` | bool | A quick-switch tile in the dock row for every HDMI port with a device plugged in (plug icon, port name, green dot); OK on it switches there. Focus lands on it whenever Home shows, so a cable already in at boot is one OK away. The tile comes and goes with the cable |
 
 ## Wallpapers
 
