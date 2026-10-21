@@ -9,18 +9,28 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-/** Draws the tvOS style lighter band behind the first (dock) row and adds a gap below it. */
+/**
+ * Draws the tvOS style lighter band behind the first (dock) row and adds a gap below it. With
+ * {@code drawBand} off only the gap remains: capsule tiles (config.xml tile_style) carry their own outline,
+ * and a slab behind them would read as a second, boxy tile.
+ */
 public class DockDecoration extends RecyclerView.ItemDecoration {
 
     private final int dockSize;
     private final float density;
+    private final boolean drawBand;
     private final Paint band = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
 
     DockDecoration(int dockSize, float density) {
+        this(dockSize, density, true);
+    }
+
+    DockDecoration(int dockSize, float density, boolean drawBand) {
         this.dockSize = dockSize;
         this.density = density;
+        this.drawBand = drawBand;
         band.setColor(0xFF141416);
         edge.setStyle(Paint.Style.STROKE);
         edge.setStrokeWidth(density);
@@ -39,6 +49,7 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
 
     @Override
     public void onDraw(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
+        if (!drawBand) return;
         boolean any = false;
         for (int i = 0; i < parent.getChildCount(); i++) {
             View child = parent.getChildAt(i);
