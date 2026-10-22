@@ -73,8 +73,8 @@ final class Config {
     final boolean overlayApplied;
     /** Festive skin from a theme (festival, festival_until, greeting, accent_color); {@link Festival#NONE} if none. */
     final Festival festival;
-    /** Meeting-room standby screen and HDMI auto-switch (standby, hdmi_auto_switch, weather_*, gitlab_*, feed_url). */
-    final StandbyConfig standby;
+    /** The home pages and their sources (pages, default_page, page_return_seconds, flip_clock, status_bar, hdmi_auto_switch, weather_*, gitlab_*, feed_url). */
+    final PagesConfig pages;
     /** When not empty, only these packages get tiles (config.xml, only_apps). */
     final List<String> onlyApps;
     /** The greeting line above the clock (config.xml, show_greeting). */
@@ -85,8 +85,6 @@ final class Config {
     final boolean dimTopButtons;
     /** A quick-switch tile in the dock row for every HDMI port with a device plugged in (config.xml, hdmi_tiles). */
     final boolean hdmiTiles;
-    /** Weather band and day cards on Home (config.xml home_weather), and the status bar there (home_status_bar). */
-    final boolean homeWeather, homeStatusBar;
 
     private Config(List<String> dockApps, boolean fillDock, List<String> hiddenApps, List<String> extraApps, String liveTvPackage,
                    String liveTvAction, String sourcePanelService, String sourcePanelAction, String inputAction,
@@ -95,8 +93,8 @@ final class Config {
                    boolean shamsiDate, boolean moduleCards, boolean reducedMotion, String vpnApp,
                    boolean showHomeSettingsShortcut, int backgroundColor, int skyIntensity,
                    int[] settingsKeycodes, boolean settingsKeyPanel, File wallpaper, boolean overlayApplied,
-                   Festival festival, StandbyConfig standby, List<String> onlyApps, boolean showGreeting,
-                   String tileStyle, boolean dimTopButtons, boolean hdmiTiles, boolean homeWeather, boolean homeStatusBar) {
+                   Festival festival, PagesConfig pages, List<String> onlyApps, boolean showGreeting,
+                   String tileStyle, boolean dimTopButtons, boolean hdmiTiles) {
         this.dockApps = Collections.unmodifiableList(dockApps);
         this.fillDock = fillDock;
         this.hiddenApps = Collections.unmodifiableList(hiddenApps);
@@ -124,14 +122,12 @@ final class Config {
         this.wallpaper = wallpaper;
         this.overlayApplied = overlayApplied;
         this.festival = festival;
-        this.standby = standby;
+        this.pages = pages;
         this.onlyApps = Collections.unmodifiableList(onlyApps);
         this.showGreeting = showGreeting;
         this.tileStyle = tileStyle;
         this.dimTopButtons = dimTopButtons;
         this.hdmiTiles = hdmiTiles;
-        this.homeWeather = homeWeather;
-        this.homeStatusBar = homeStatusBar;
     }
 
     /** The folder the theme tools push into; null when external storage is unavailable. */
@@ -170,9 +166,11 @@ final class Config {
         int[] settingsKeycodes = res.getIntArray(R.array.settings_key_keycodes);
         boolean settingsKeyPanel = res.getBoolean(R.bool.settings_key_panel);
         boolean applied = false;
-        boolean standbyOn = res.getBoolean(R.bool.standby);
-        int standbyIdle = res.getInteger(R.integer.standby_idle_seconds);
-        boolean flipClock = res.getBoolean(R.bool.standby_flip_clock);
+        List<String> pages = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.pages)));
+        String defaultPage = res.getString(R.string.default_page).trim();
+        int returnSeconds = res.getInteger(R.integer.page_return_seconds);
+        boolean flipClock = res.getBoolean(R.bool.flip_clock);
+        boolean statusBar = res.getBoolean(R.bool.status_bar);
         String weatherLat = res.getString(R.string.weather_lat).trim();
         String weatherLon = res.getString(R.string.weather_lon).trim();
         String gitlabUrl = res.getString(R.string.gitlab_url).trim();
@@ -181,8 +179,6 @@ final class Config {
         String feedUrl = res.getString(R.string.feed_url).trim();
         boolean hdmiAutoSwitch = res.getBoolean(R.bool.hdmi_auto_switch);
         boolean hdmiTiles = res.getBoolean(R.bool.hdmi_tiles);
-        boolean homeWeather = res.getBoolean(R.bool.home_weather);
-        boolean homeStatusBar = res.getBoolean(R.bool.home_status_bar);
 
         File dir = dir(ctx);
         File file = dir != null ? new File(dir, FILE_NAME) : null;
@@ -217,9 +213,11 @@ final class Config {
             skyIntensity = integer(json, "sky_intensity", skyIntensity, 0, 100);
             settingsKeycodes = intArray(json, "settings_key_keycodes", settingsKeycodes);
             settingsKeyPanel = bool(json, "settings_key_panel", settingsKeyPanel);
-            standbyOn = bool(json, "standby", standbyOn);
-            standbyIdle = integer(json, "standby_idle_seconds", standbyIdle, StandbyConfig.MIN_IDLE, StandbyConfig.MAX_IDLE);
-            flipClock = bool(json, "standby_flip_clock", flipClock);
+            pages = stringList(json, "pages", pages);
+            defaultPage = string(json, "default_page", defaultPage);
+            returnSeconds = integer(json, "page_return_seconds", returnSeconds, 0, PagesConfig.MAX_RETURN);
+            flipClock = bool(json, "flip_clock", flipClock);
+            statusBar = bool(json, "status_bar", statusBar);
             weatherLat = numberText(json, "weather_lat", weatherLat);
             weatherLon = numberText(json, "weather_lon", weatherLon);
             gitlabUrl = string(json, "gitlab_url", gitlabUrl);
@@ -228,8 +226,6 @@ final class Config {
             feedUrl = string(json, "feed_url", feedUrl);
             hdmiAutoSwitch = bool(json, "hdmi_auto_switch", hdmiAutoSwitch);
             hdmiTiles = bool(json, "hdmi_tiles", hdmiTiles);
-            homeWeather = bool(json, "home_weather", homeWeather);
-            homeStatusBar = bool(json, "home_status_bar", homeStatusBar);
         }
         // A theme push or reset invalidates choices made on the TV. On first use, remember the
         // current theme without clearing choices from an older launcher version.
@@ -253,10 +249,9 @@ final class Config {
                 shamsi, moduleCards, reducedMotion, vpn, homeSettings, background,
                 Math.max(0, Math.min(100, skyIntensity)), settingsKeycodes, settingsKeyPanel, wallpaper, applied,
                 festival,
-                StandbyConfig.from(standbyOn, standbyIdle, weatherLat, weatherLon, gitlabUrl, gitlabToken,
-                        gitlabProjects, feedUrl, hdmiAutoSwitch, flipClock),
-                only, showGreeting, "capsule".equals(tileStyle) ? "capsule" : "card", dimTopButtons, hdmiTiles,
-                homeWeather, homeStatusBar);
+                PagesConfig.from(pages, defaultPage, returnSeconds, flipClock, statusBar, weatherLat, weatherLon,
+                        gitlabUrl, gitlabToken, gitlabProjects, feedUrl, hdmiAutoSwitch),
+                only, showGreeting, "capsule".equals(tileStyle) ? "capsule" : "card", dimTopButtons, hdmiTiles);
     }
 
     private static void syncThemeChoices(SharedPreferences choices, File dir, File config) {
@@ -317,7 +312,7 @@ final class Config {
         return v instanceof String ? ((String) v).trim() : fallback;
     }
 
-    /** A number or a string holding one, as text; StandbyConfig does the parsing and range check. */
+    /** A number or a string holding one, as text; PagesConfig does the parsing and range check. */
     private static String numberText(JSONObject o, String key, String fallback) {
         Object v = o.opt(key);
         if (v instanceof Number) return v.toString();

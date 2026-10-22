@@ -18,7 +18,7 @@ powershell -ExecutionPolicy Bypass -File tools\theme.ps1 -TvHost 192.168.1.50 th
 | `aurora/` | A dark aurora wallpaper (teal and violet on navy, darker at the bottom) with a matching background colour |
 | `dussehra/` | Festive skin for Dussehra (ends 21 Oct 2026): a marigold toran, a faint gold rangoli, a diya for Wi-Fi, a bell for Inputs, a marigold for Settings and a petal shower |
 | `six-columns/` | Six smaller tiles per row and one grid row visible under the dock |
-| `meeting-room/` | An office TV used only for HDMI screen sharing: a standby clock with weather and CI status after 30 s idle, and automatic switching to a freshly plugged HDMI port (Redmi A50 2025) |
+| `meeting-room/` | An office TV used only for HDMI screen sharing: Home is three pages (apps, a flip clock, the weather) flipped with Left/Right and resting on the clock, with a CI status bar and automatic switching to a freshly plugged HDMI port (Redmi A50 2025) |
 
 ## Keys
 
@@ -57,15 +57,16 @@ is ignored, and a file that doesn't parse is ignored as a whole, so a theme can 
 | `accent_color` | `#RRGGBB` | Colour of the focus glow while the festive skin is on; diya gold if not set |
 | `settings_key_keycodes` | list of keycodes | Remote buttons that open Settings, for `HomeKeyService` (TCL Google TV gear: `[83]`) |
 | `settings_key_panel` | bool | Those buttons open a small quick settings panel (TV settings, Display, Network, Apps, Launcher settings) instead of the TV's Settings |
-| `standby` | bool | Standby screen: a clock, the date and weather, and a status bar, fading in over Home after `standby_idle_seconds` (5 to 3600, default 30) without a key press; any key brings Home back and is swallowed |
-| `standby_flip_clock` | bool | The standby clock as split-flap cards: hour and minute cards plus two smaller seconds cards, flipping on every change (true by default); false shows plain thin digits without seconds |
-| `weather_lat`, `weather_lon` | number | Open-Meteo coordinates for the weather on the standby screen; both needed, no API key |
+| `pages` | list of `apps`, `clock`, `weather` | The pages Left and Right flip through, in that order: `apps` is the launcher itself; `clock` a large clock with the date and the current weather; `weather` the current conditions, the next 12 hours and three days (needs `weather_lat`/`weather_lon`). Unknown names are dropped; `["apps"]` (the default) is the plain launcher with no flipping. On the apps page, Left on the leftmost item or Right on the rightmost flips; on the other pages OK jumps to the apps page and Back to the default page |
+| `default_page` | string | The page Home opens on, comes back to from another app and returns to after idling; one of `pages`, else the first (`apps` by default) |
+| `page_return_seconds` | 0 to 86400 | Seconds on another page without a key press before `default_page` comes back; 0 never (600 by default) |
+| `flip_clock` | bool | The clock page as split-flap cards: hour and minute cards plus two smaller seconds cards, flipping on every change (true by default); false shows plain thin digits without seconds |
+| `status_bar` | bool | A bar at the bottom of every page: `插线即投屏`, then the latest CI pipeline of each `gitlab_projects` entry. With more than one page the bar's right end shows page dots (they show without the bar too) |
+| `weather_lat`, `weather_lon` | number | Open-Meteo coordinates for the weather on the clock and weather pages; both needed, no API key |
 | `gitlab_url`, `gitlab_token`, `gitlab_projects` | string, string, list of `group/project` | Latest pipeline of each project in the status bar, fetched every 5 minutes with a read-only (`read_api`) token. The token sits in plain text in the TV's config.json; `REPLACE_ME` keeps the source off |
 | `feed_url` | string | One JSON with everything instead of the two sources above, fetched every minute: `{"weather":{"temp_c":21,"text":"多云"},"ci":[{"name":"x","status":"success","updated_at":"2026-10-20T06:12:00Z"}]}` |
 | `hdmi_auto_switch` | bool | Plugging a device into an HDMI port switches to it after a short toast; unplugging it brings Home back. Only changes count: a cable already in at boot does nothing |
 | `hdmi_tiles` | bool | A quick-switch tile in the dock row for every HDMI port with a device plugged in (plug icon, port name, green dot); OK on it switches there. Focus lands on it whenever Home shows, so a cable already in at boot is one OK away. The tile comes and goes with the cable |
-| `home_weather` | bool | On Home, under the header: a band with the current weather, today's high/low and the next 8 hours, then three day cards, from the same Open-Meteo request as the standby screen (needs `weather_lat`/`weather_lon`). Nothing in it takes focus; hidden until the first fetch succeeds
-| `home_status_bar` | bool | The standby screen's status bar (HDMI hint, CI cells) at the bottom of Home as well |
 
 ## Wallpapers
 
@@ -98,15 +99,18 @@ the plain background; the default is off (the reference launcher looks exactly a
 { "sky_intensity": 60 }
 ```
 
-## Meeting-room standby screen
+## Meeting-room pages
 
-`themes/meeting-room` turns the launcher into an office screen-sharing TV: after 30 seconds without
-a key press Home fades into a large clock with the date, the weather and a status bar; the bar shows
-`插线即投屏` and the latest CI pipeline of each `gitlab_projects` entry. Plugging a laptop into any
-HDMI port shows "HDMI 2 detected, switching…" for a moment and switches to it; unplugging comes back.
-The TV needs a network for the weather and CI (the clock works without). Put a read-only GitLab token
-in `gitlab_token` before pushing the theme, and change the coordinates to your office. The design and
-the device checks are in `docs/superpowers/specs/2026-10-20-meeting-room-standby-design.md`.
+`themes/meeting-room` turns the launcher into an office screen-sharing TV. Home is three pages:
+the apps page (the casting capsule and HDMI quick-switch tiles), a large flip clock with the date
+and weather, and a weather page with the next hours and three days. Left and Right flip between
+them; the TV rests on the clock and goes back to it ten minutes after the last key press, or as
+soon as you come back from an app. The status bar at the bottom shows `插线即投屏` and the latest CI
+pipeline of each `gitlab_projects` entry. Plugging a laptop into any HDMI port shows "HDMI 2
+detected, switching…" for a moment and switches to it; unplugging comes back. The TV needs a network
+for the weather and CI (the clock works without). Put a read-only GitLab token in `gitlab_token`
+before pushing the theme, and change the coordinates to your office. The design and the device
+checks are in `docs/superpowers/specs/2026-10-22-home-pager-design.md`.
 
 ## Adding a theme
 

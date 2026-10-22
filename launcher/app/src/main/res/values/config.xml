@@ -125,13 +125,21 @@
          "sky_intensity": 60 in a theme's config.json. -->
     <integer name="sky_intensity">0</integer>
 
-    <!-- Meeting-room standby screen (docs/superpowers/specs/2026-10-20-meeting-room-standby-design.md).
-         Off unless a theme turns it on: a clock, the date and weather, and a status bar with the latest
-         CI pipeline of each GitLab project, shown after standby_idle_seconds without a key press. -->
-    <bool name="standby">false</bool>
-    <integer name="standby_idle_seconds">30</integer>
-    <!-- The standby clock as split-flap cards that flip on every minute change; false shows plain digits. -->
-    <bool name="standby_flip_clock">true</bool>
+    <!-- Home as pages (docs/superpowers/specs/2026-10-22-home-pager-design.md): the pages Left and Right flip
+         through, in order. "apps" is the launcher itself; "clock" a large flip clock with the date and weather;
+         "weather" the current conditions, the next hours and three days (needs weather_lat/weather_lon).
+         Unknown names are dropped; an empty list means apps alone, which is today's launcher. -->
+    <string-array name="pages">
+        <item>apps</item>
+    </string-array>
+    <!-- The page Home opens on and comes back to; one of the names above, else the first. -->
+    <string name="default_page" translatable="false">apps</string>
+    <!-- Seconds on another page without a key press before the default page comes back; 0 never, at most 86400. -->
+    <integer name="page_return_seconds">600</integer>
+    <!-- The clock page as split-flap cards that flip on every change; false shows plain digits without seconds. -->
+    <bool name="flip_clock">true</bool>
+    <!-- A status bar at the bottom of every page: the HDMI hint and the latest CI pipeline of each GitLab project. -->
+    <bool name="status_bar">false</bool>
     <!-- Open-Meteo coordinates, decimal degrees as text; both empty keeps the weather off. -->
     <string name="weather_lat" translatable="false"></string>
     <string name="weather_lon" translatable="false"></string>
@@ -145,9 +153,4 @@
     <bool name="hdmi_auto_switch">false</bool>
     <!-- A quick-switch tile in the dock row for every HDMI port with a device plugged in; focus lands on it. -->
     <bool name="hdmi_tiles">false</bool>
-    <!-- Home screen weather (docs/superpowers/specs/2026-10-22-home-weather-design.md): a band with the current
-         conditions and the next hours, and three day cards, under the header. Needs weather_lat/weather_lon. -->
-    <bool name="home_weather">false</bool>
-    <!-- The standby screen's status bar (HDMI hint, CI cells) at the bottom of the home screen too. -->
-    <bool name="home_status_bar">false</bool>
 </resources>

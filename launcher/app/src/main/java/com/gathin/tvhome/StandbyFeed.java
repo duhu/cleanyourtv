@@ -28,7 +28,7 @@ final class StandbyFeed {
     static final long FEED_MS = 60_000L, GITLAB_MS = 5 * 60_000L, WEATHER_MS = 30 * 60_000L;
     private static final int TIMEOUT_MS = 10_000, MAX_BYTES = 256 * 1024;
 
-    private final StandbyConfig cfg;
+    private final PagesConfig cfg;
     private final Handler main;
     private final Listener listener;
     private HandlerThread thread;
@@ -100,7 +100,7 @@ final class StandbyFeed {
         }
     };
 
-    StandbyFeed(StandbyConfig cfg, Handler main, Listener listener) {
+    StandbyFeed(PagesConfig cfg, Handler main, Listener listener) {
         this.cfg = cfg;
         this.main = main;
         this.listener = listener;
