@@ -285,7 +285,6 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         homeBar = findViewById(R.id.homeBar);
         statusCells = homeBar.findViewById(R.id.statusCells);
         pageDots = homeBar.findViewById(R.id.pageDots);
-        setUpPages();
         glass = findViewById(R.id.glass);
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
@@ -501,6 +500,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     .removeCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
                     .build(), vpnCallback);
         }
+        // Last: showing the first page touches the grid, the glass and the glow set up above.
+        setUpPages();
         // Not after recreate(): the launch intent survives it and would open the settings again.
         if (savedInstanceState == null) openLauncherSettingsIfAsked(getIntent());
     }
