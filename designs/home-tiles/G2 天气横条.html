@@ -1,0 +1,49 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>G2 天气横条</title>
+<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="home.css"><link rel="stylesheet" href="wx.css">
+<style>
+  .band { position: absolute; left: 112px; right: 112px; top: 250px; height: 230px; padding: 0 48px; box-sizing: border-box; display: flex; align-items: center; gap: 48px; }
+  .now { display: flex; align-items: center; gap: 28px; padding-right: 48px; border-right: 1px solid var(--t25); height: 150px; }
+  .now svg { width: 110px; height: 110px; }
+  .now .temp { font-size: 120px; }
+  .hours { flex: 1; }
+  .h svg { width: 44px; height: 44px; }
+  .days { position: absolute; left: 112px; right: 112px; top: 510px; display: flex; gap: 32px; }
+  .dy { flex: 1; height: 110px; padding: 0 36px; box-sizing: border-box; }
+  .dy svg { width: 44px; height: 44px; }
+  .row { top: 690px; }
+</style></head><body>
+  <svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="sun" viewBox="0 0 48 48"><g class="wi sun"><circle cx="24" cy="24" r="9"/><path d="M24 4v6M24 38v6M4 24h6M38 24h6M9.9 9.9l4.2 4.2M33.9 33.9l4.2 4.2M9.9 38.1l4.2-4.2M33.9 14.1l4.2-4.2"/></g></symbol>
+<symbol id="psun" viewBox="0 0 48 48"><g class="wi sun"><circle cx="17" cy="17" r="7"/><path d="M17 3v4M3 17h4M7.1 7.1l2.8 2.8M27 7.1l-2.8 2.8"/></g><path class="wi" d="M16 40h20a8 8 0 0 0 1-15.9A11 11 0 0 0 16 27a6.5 6.5 0 0 0 0 13z"/></symbol>
+<symbol id="cloud" viewBox="0 0 48 48"><path class="wi" d="M14 38h20a9 9 0 0 0 1-17.9A12 12 0 0 0 12 24a7 7 0 0 0 2 14z"/></symbol>
+<symbol id="rain" viewBox="0 0 48 48"><g class="wi rain"><path d="M14 32h20a9 9 0 0 0 1-17.9A12 12 0 0 0 12 18a7 7 0 0 0 2 14z"/><path class="drop" d="M18 37l-2 6M26 37l-2 6M34 37l-2 6"/></g></symbol>
+<symbol id="storm" viewBox="0 0 48 48"><g class="wi storm"><path d="M14 30h20a9 9 0 0 0 1-17.9A12 12 0 0 0 12 16a7 7 0 0 0 2 14z"/><path class="bolt" d="M26 28l-6 9h5l-2 8 7-11h-5z"/></g></symbol>
+</defs></svg>
+  <div class="clockline"><span class="t">11:45</span><span class="ampm">上午</span><span class="sep"></span><span class="d">10月22日 星期四</span></div>
+  <div class="topbtns"><span class="pill"><span class="ic"></span>输入源</span><span class="pill"><span class="ic"></span>LY-office</span><span class="pill"><span class="ic"></span>设置</span></div>
+  <div class="band panel">
+    <div class="now"><svg><use href="#sun"/></svg><div class="temp">20°</div><div><div class="cond">晴 · 苏州</div><div class="hl">最高 21° &nbsp;最低 12°</div></div></div>
+    <div class="hours">
+      <div class="h now"><span class="hh">现在</span><svg><use href="#sun"/></svg><span class="ht">20°</span></div>
+      <div class="h"><span class="hh">13时</span><svg><use href="#psun"/></svg><span class="ht">21°</span></div>
+      <div class="h"><span class="hh">14时</span><svg><use href="#psun"/></svg><span class="ht">21°</span></div>
+      <div class="h"><span class="hh">15时</span><svg><use href="#sun"/></svg><span class="ht">20°</span></div>
+      <div class="h"><span class="hh">16时</span><svg><use href="#psun"/></svg><span class="ht">19°</span></div>
+      <div class="h"><span class="hh">17时</span><svg><use href="#psun"/></svg><span class="ht">18°</span></div>
+      <div class="h"><span class="hh">18时</span><svg><use href="#cloud"/></svg><span class="ht">17°</span></div>
+      <div class="h"><span class="hh">19时</span><svg><use href="#cloud"/></svg><span class="ht">16°</span></div>
+    </div>
+  </div>
+  <div class="days">
+    <div class="dy panel"><span class="dn">明天</span><svg><use href="#rain"/></svg><span class="dc">阵雨</span><span class="range"><i>15°</i> / <b>23°</b></span></div>
+    <div class="dy panel"><span class="dn">周六</span><svg><use href="#rain"/></svg><span class="dc">小雨</span><span class="range"><i>18°</i> / <b>22°</b></span></div>
+    <div class="dy panel"><span class="dn">周日</span><svg><use href="#storm"/></svg><span class="dc">雷雨</span><span class="range"><i>19°</i> / <b>23°</b></span></div>
+  </div>
+  <div class="row"><div class="btn lit"><img src="icon-smartshare.png">无线投屏</div></div>
+  <div class="bar panel">
+    <div class="cell"><span class="icon">HDMI</span><span>插线即投屏</span></div>
+    <div class="cell"><span class="dot" style="background:var(--ok)"></span><span>cleanyourtv</span><span class="k">12 分钟前</span></div>
+    <div class="cell"><span class="dot" style="background:var(--warn)"></span><span>api-gateway</span><span class="k">刚刚</span></div>
+  </div>
+  <div class="note" style="bottom:160px">G2 · 天气横条贯穿整行（现在 + 逐小时），三天预报三张小卡，投屏胶囊往下挪，底部状态条</div>
+</body></html>

@@ -30,8 +30,36 @@
           }
         }
       ]
+    },
+    "G1 右侧天气面板": {
+      "versions": [
+        {
+          "path": "G1 右侧天气面板.html",
+          "createdAt": "2026-10-22T03:53:26.521Z",
+          "status": "changes-requested",
+          "subtitle": "右侧天气面板（未选）",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ]
+    },
+    "G2 天气横条": {
+      "versions": [
+        {
+          "path": "G2 天气横条.html",
+          "createdAt": "2026-10-22T03:53:26.554Z",
+          "status": "approved",
+          "subtitle": "主页天气横条 + 三天小卡 + 底部状态条（已选定）",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ]
     }
   },
   "createdAt": "2026-10-20T12:09:53.184Z",
-  "updatedAt": "2026-10-21T01:59:58.432Z"
+  "updatedAt": "2026-10-22T03:55:53.428Z"
 }

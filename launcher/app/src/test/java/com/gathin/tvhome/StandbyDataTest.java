@@ -22,6 +22,47 @@ public class StandbyDataTest {
         assertNull(w.text);
     }
 
+    private static final String OPEN_METEO_FORECAST = "{\"current\":{\"time\":\"2026-10-22T11:45\",\"temperature_2m\":19.9,\"weather_code\":0},"
+            + "\"hourly\":{\"time\":[\"2026-10-22T10:00\",\"2026-10-22T11:00\",\"2026-10-22T12:00\",\"2026-10-22T13:00\"],"
+            + "\"temperature_2m\":[18.9,19.5,20.0,20.5],\"weather_code\":[1,1,0,61]},"
+            + "\"daily\":{\"time\":[\"2026-10-22\",\"2026-10-23\",\"2026-10-24\",\"2026-10-25\"],"
+            + "\"temperature_2m_max\":[20.8,22.8,22.4,22.8],\"temperature_2m_min\":[12.3,15.3,18.2,19.3],\"weather_code\":[3,80,61,95]}}";
+
+    @Test
+    public void openMeteoForecast() {
+        StandbyData.Forecast f = StandbyData.parseOpenMeteoForecast(OPEN_METEO_FORECAST);
+        assertNotNull(f);
+        assertEquals(20.8, f.todayMaxC, 1e-9);
+        assertEquals(12.3, f.todayMinC, 1e-9);
+        assertEquals(4, f.hours.size());
+        assertEquals(java.time.LocalDateTime.of(2026, 10, 22, 10, 0), f.hours.get(0).time);
+        assertEquals(StandbyData.WeatherKind.RAIN, f.hours.get(3).kind);
+        assertEquals(3, f.days.size());                       // today is not a card
+        assertEquals(java.time.LocalDate.of(2026, 10, 23), f.days.get(0).date);
+        assertEquals(15.3, f.days.get(0).minC, 1e-9);
+        assertEquals(22.8, f.days.get(0).maxC, 1e-9);
+        assertEquals(StandbyData.WeatherKind.THUNDER, f.days.get(2).kind);
+    }
+
+    @Test
+    public void hoursFromNowDropPastHoursAndCap() {
+        StandbyData.Forecast f = StandbyData.parseOpenMeteoForecast(OPEN_METEO_FORECAST);
+        java.util.List<StandbyData.HourInfo> h = f.hoursFrom(java.time.LocalDateTime.of(2026, 10, 22, 11, 30), 8);
+        assertEquals(3, h.size());                            // 11:00 (contains now), 12:00, 13:00
+        assertEquals(19.5, h.get(0).tempC, 1e-9);
+        assertEquals(2, f.hoursFrom(java.time.LocalDateTime.of(2026, 10, 22, 11, 30), 2).size());
+        assertTrue(f.hoursFrom(java.time.LocalDateTime.of(2026, 10, 23, 0, 0), 8).isEmpty());
+    }
+
+    @Test
+    public void forecastProblemsGiveNull() {
+        assertNull(StandbyData.parseOpenMeteoForecast(OPEN_METEO));                 // current only
+        assertNull(StandbyData.parseOpenMeteoForecast("{\"hourly\":{\"time\":[\"x\"],\"temperature_2m\":[1]}}"));
+        assertNull(StandbyData.parseOpenMeteoForecast(null));
+        assertNull(StandbyData.StandbySnapshot.EMPTY.forecast);
+        assertNull(new StandbyData.StandbySnapshot(null, java.util.Collections.emptyList()).forecast);
+    }
+
     @Test
     public void openMeteoProblemsGiveNull() {
         assertNull(StandbyData.parseOpenMeteo("not json"));

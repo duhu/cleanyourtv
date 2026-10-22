@@ -145,4 +145,9 @@
     <bool name="hdmi_auto_switch">false</bool>
     <!-- A quick-switch tile in the dock row for every HDMI port with a device plugged in; focus lands on it. -->
     <bool name="hdmi_tiles">false</bool>
+    <!-- Home screen weather (docs/superpowers/specs/2026-10-22-home-weather-design.md): a band with the current
+         conditions and the next hours, and three day cards, under the header. Needs weather_lat/weather_lon. -->
+    <bool name="home_weather">false</bool>
+    <!-- The standby screen's status bar (HDMI hint, CI cells) at the bottom of the home screen too. -->
+    <bool name="home_status_bar">false</bool>
 </resources>

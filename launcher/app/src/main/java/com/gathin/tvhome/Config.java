@@ -85,6 +85,8 @@ final class Config {
     final boolean dimTopButtons;
     /** A quick-switch tile in the dock row for every HDMI port with a device plugged in (config.xml, hdmi_tiles). */
     final boolean hdmiTiles;
+    /** Weather band and day cards on Home (config.xml home_weather), and the status bar there (home_status_bar). */
+    final boolean homeWeather, homeStatusBar;
 
     private Config(List<String> dockApps, boolean fillDock, List<String> hiddenApps, List<String> extraApps, String liveTvPackage,
                    String liveTvAction, String sourcePanelService, String sourcePanelAction, String inputAction,
@@ -94,7 +96,7 @@ final class Config {
                    boolean showHomeSettingsShortcut, int backgroundColor, int skyIntensity,
                    int[] settingsKeycodes, boolean settingsKeyPanel, File wallpaper, boolean overlayApplied,
                    Festival festival, StandbyConfig standby, List<String> onlyApps, boolean showGreeting,
-                   String tileStyle, boolean dimTopButtons, boolean hdmiTiles) {
+                   String tileStyle, boolean dimTopButtons, boolean hdmiTiles, boolean homeWeather, boolean homeStatusBar) {
         this.dockApps = Collections.unmodifiableList(dockApps);
         this.fillDock = fillDock;
         this.hiddenApps = Collections.unmodifiableList(hiddenApps);
@@ -128,6 +130,8 @@ final class Config {
         this.tileStyle = tileStyle;
         this.dimTopButtons = dimTopButtons;
         this.hdmiTiles = hdmiTiles;
+        this.homeWeather = homeWeather;
+        this.homeStatusBar = homeStatusBar;
     }
 
     /** The folder the theme tools push into; null when external storage is unavailable. */
@@ -177,6 +181,8 @@ final class Config {
         String feedUrl = res.getString(R.string.feed_url).trim();
         boolean hdmiAutoSwitch = res.getBoolean(R.bool.hdmi_auto_switch);
         boolean hdmiTiles = res.getBoolean(R.bool.hdmi_tiles);
+        boolean homeWeather = res.getBoolean(R.bool.home_weather);
+        boolean homeStatusBar = res.getBoolean(R.bool.home_status_bar);
 
         File dir = dir(ctx);
         File file = dir != null ? new File(dir, FILE_NAME) : null;
@@ -222,6 +228,8 @@ final class Config {
             feedUrl = string(json, "feed_url", feedUrl);
             hdmiAutoSwitch = bool(json, "hdmi_auto_switch", hdmiAutoSwitch);
             hdmiTiles = bool(json, "hdmi_tiles", hdmiTiles);
+            homeWeather = bool(json, "home_weather", homeWeather);
+            homeStatusBar = bool(json, "home_status_bar", homeStatusBar);
         }
         // A theme push or reset invalidates choices made on the TV. On first use, remember the
         // current theme without clearing choices from an older launcher version.
@@ -247,7 +255,8 @@ final class Config {
                 festival,
                 StandbyConfig.from(standbyOn, standbyIdle, weatherLat, weatherLon, gitlabUrl, gitlabToken,
                         gitlabProjects, feedUrl, hdmiAutoSwitch, flipClock),
-                only, showGreeting, "capsule".equals(tileStyle) ? "capsule" : "card", dimTopButtons, hdmiTiles);
+                only, showGreeting, "capsule".equals(tileStyle) ? "capsule" : "card", dimTopButtons, hdmiTiles,
+                homeWeather, homeStatusBar);
     }
 
     private static void syncThemeChoices(SharedPreferences choices, File dir, File config) {

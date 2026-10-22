@@ -159,6 +159,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private StandbyView standby;
     private StandbyConfig standbyConfig;
     private StandbyFeed standbyFeed;
+    /** The same feed on Home: the weather band (config.xml home_weather) and the status bar (home_status_bar). */
+    private HomeWeatherView homeWeather;
+    private LinearLayout homeBar;
+    private boolean homeWeatherOn, homeBarOn;
+    private StandbyData.StandbySnapshot homeSnapshot = StandbyData.StandbySnapshot.EMPTY;
     /** HDMI auto-switch (config.xml hdmi_auto_switch); fed by inputCallback. */
     private InputWatcher inputWatcher = new InputWatcher(false);
     /** Quick-switch tiles for plugged-in HDMI ports (config.xml hdmi_tiles); focus lands on the first one. */
@@ -223,6 +228,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             updateGreeting();
             updateWifiLabel();
             sky.update();
+            StandbyFeature.run(() -> {
+                homeWeather.tick();
+                renderHomeBar();
+            });
             handler.postDelayed(this, MINUTE_MS);
         }
     };
@@ -262,9 +271,20 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         StandbyFeature.run(() -> {
             standby.configure(standbyConfig, animations && !reducedMotion);
         });
-        if (standbyConfig.enabled && standbyConfig.hasSources()) {
+        homeWeatherOn = cfg.homeWeather;
+        homeBarOn = cfg.homeStatusBar;
+        homeWeather = findViewById(R.id.homeWeather);
+        homeBar = findViewById(R.id.homeBar);
+        homeBar.setVisibility(homeBarOn ? View.VISIBLE : View.GONE);
+        StandbyFeature.run(() -> {
+            homeWeather.configure(homeWeatherOn);
+        });
+        if ((standbyConfig.enabled || homeWeatherOn || homeBarOn) && standbyConfig.hasSources()) {
             standbyFeed = new StandbyFeed(standbyConfig, handler, snapshot -> StandbyFeature.run(() -> {
                 standby.render(snapshot);
+                homeWeather.render(snapshot);
+                homeSnapshot = snapshot;
+                renderHomeBar();
             }));
             StandbyFeature.run(() -> {
                 standbyFeed.start();
@@ -353,6 +373,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             int want = Math.max(0, h - dockRow - gridRows - (int) (30 * density));
             if (grid.getPaddingTop() != want) {
                 grid.setPadding(grid.getPaddingLeft(), want, grid.getPaddingRight(), grid.getPaddingBottom());
+                // The grid changed height (the weather band appearing after its first fetch, say): with the
+                // old scroll offset kept, the dock row could sit above the top edge and be recycled away.
+                grid.scrollToPosition(0);
             }
         });
 
@@ -683,6 +706,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) showCardPrompt();
+    }
+
+    private void renderHomeBar() {
+        if (homeBarOn) StatusCells.fill(homeBar, homeSnapshot.ci, density);
     }
 
     @Override

@@ -83,4 +83,11 @@
     <string name="weather_rain">Rain</string>
     <string name="weather_snow">Snow</string>
     <string name="weather_thunder">Thunderstorm</string>
+    <string name="home_hour_now">Now</string>
+    <!-- java.time pattern for the hour columns of the home weather band -->
+    <string name="home_hour_pattern">HH</string>
+    <string name="home_day_tomorrow">Tomorrow</string>
+    <!-- java.time pattern for the day cards after tomorrow -->
+    <string name="home_day_pattern">EEE</string>
+    <string name="home_hilo">H %1$d°  L %2$d°</string>
 </resources>

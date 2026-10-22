@@ -3,7 +3,10 @@ package com.gathin.tvhome;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,15 +47,77 @@ final class StandbyData {
         }
     }
 
-    /** Everything the view renders; a null weather or empty ci list means "nothing known". */
+    /** One hour of the Open-Meteo forecast, in the location's local time. */
+    static final class HourInfo {
+        final LocalDateTime time;
+        final double tempC;
+        final WeatherKind kind;
+
+        HourInfo(LocalDateTime time, double tempC, WeatherKind kind) {
+            this.time = time;
+            this.tempC = tempC;
+            this.kind = kind;
+        }
+    }
+
+    /** One day of the forecast after today. */
+    static final class DayInfo {
+        final LocalDate date;
+        /** NaN when the API left the value out. */
+        final double minC, maxC;
+        final WeatherKind kind;
+
+        DayInfo(LocalDate date, double minC, double maxC, WeatherKind kind) {
+            this.date = date;
+            this.minC = minC;
+            this.maxC = maxC;
+            this.kind = kind;
+        }
+    }
+
+    /** The hourly and daily part of an Open-Meteo answer: what the home screen's weather band shows. */
+    static final class Forecast {
+        /** Today's range, NaN when unknown. */
+        final double todayMinC, todayMaxC;
+        final List<HourInfo> hours;
+        /** The days after today, in order. */
+        final List<DayInfo> days;
+
+        Forecast(double todayMinC, double todayMaxC, List<HourInfo> hours, List<DayInfo> days) {
+            this.todayMinC = todayMinC;
+            this.todayMaxC = todayMaxC;
+            this.hours = Collections.unmodifiableList(new ArrayList<>(hours));
+            this.days = Collections.unmodifiableList(new ArrayList<>(days));
+        }
+
+        /** The hours from the one that contains now, at most max of them; empty once the forecast is in the past. */
+        List<HourInfo> hoursFrom(LocalDateTime now, int max) {
+            LocalDateTime floor = now.truncatedTo(ChronoUnit.HOURS);
+            List<HourInfo> out = new ArrayList<>();
+            for (HourInfo h : hours) {
+                if (h.time.isBefore(floor)) continue;
+                if (out.size() >= max) break;
+                out.add(h);
+            }
+            return out;
+        }
+    }
+
+    /** Everything the views render; a null weather, null forecast or empty ci list means "nothing known". */
     static final class StandbySnapshot {
         static final StandbySnapshot EMPTY = new StandbySnapshot(null, Collections.emptyList());
         final WeatherInfo weather;
         final List<CiInfo> ci;
+        final Forecast forecast;
 
         StandbySnapshot(WeatherInfo weather, List<CiInfo> ci) {
+            this(weather, ci, null);
+        }
+
+        StandbySnapshot(WeatherInfo weather, List<CiInfo> ci, Forecast forecast) {
             this.weather = weather;
             this.ci = Collections.unmodifiableList(new ArrayList<>(ci));
+            this.forecast = forecast;
         }
     }
 
@@ -80,6 +145,49 @@ final class StandbyData {
             double temp = current.getDouble("temperature_2m");
             int code = current.opt("weather_code") instanceof Number ? current.getInt("weather_code") : -1;
             return new WeatherInfo(temp, weatherKind(code), null);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * The hourly and daily parts of the same Open-Meteo answer (hourly=temperature_2m,weather_code and
+     * daily=temperature_2m_max,temperature_2m_min,weather_code, times in the location's zone). Null
+     * when either part is missing or unreadable; a null value inside an array skips that entry.
+     */
+    static Forecast parseOpenMeteoForecast(String json) {
+        if (json == null) return null;
+        try {
+            JSONObject o = new JSONObject(json);
+            JSONObject hourly = o.optJSONObject("hourly"), daily = o.optJSONObject("daily");
+            if (hourly == null || daily == null) return null;
+            JSONArray ht = hourly.getJSONArray("time"), htemp = hourly.getJSONArray("temperature_2m");
+            JSONArray hcode = hourly.optJSONArray("weather_code");
+            List<HourInfo> hours = new ArrayList<>();
+            for (int i = 0; i < ht.length() && i < htemp.length(); i++) {
+                if (htemp.isNull(i)) continue;
+                int code = hcode != null && i < hcode.length() && !hcode.isNull(i) ? hcode.getInt(i) : -1;
+                hours.add(new HourInfo(LocalDateTime.parse(ht.getString(i)), htemp.getDouble(i), weatherKind(code)));
+            }
+            JSONArray dt = daily.getJSONArray("time");
+            JSONArray dmax = daily.getJSONArray("temperature_2m_max"), dmin = daily.getJSONArray("temperature_2m_min");
+            JSONArray dcode = daily.optJSONArray("weather_code");
+            if (dt.length() == 0) return null;
+            double todayMin = Double.NaN, todayMax = Double.NaN;
+            List<DayInfo> days = new ArrayList<>();
+            for (int i = 0; i < dt.length(); i++) {
+                LocalDate date = LocalDate.parse(dt.getString(i));
+                double max = i < dmax.length() && !dmax.isNull(i) ? dmax.getDouble(i) : Double.NaN;
+                double min = i < dmin.length() && !dmin.isNull(i) ? dmin.getDouble(i) : Double.NaN;
+                int code = dcode != null && i < dcode.length() && !dcode.isNull(i) ? dcode.getInt(i) : -1;
+                if (i == 0) {
+                    todayMin = min;
+                    todayMax = max;
+                } else {
+                    days.add(new DayInfo(date, min, max, weatherKind(code)));
+                }
+            }
+            return new Forecast(todayMin, todayMax, hours, days);
         } catch (Exception e) {
             return null;
         }

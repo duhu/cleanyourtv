@@ -34,6 +34,7 @@ final class StandbyFeed {
     private HandlerThread thread;
     private Handler worker;
     private StandbyData.WeatherInfo weather;
+    private StandbyData.Forecast forecast;
     private List<StandbyData.CiInfo> ci = new ArrayList<>();
 
     private final Runnable fetchFeed = new Runnable() {
@@ -49,13 +50,20 @@ final class StandbyFeed {
     private final Runnable fetchWeather = new Runnable() {
         @Override
         public void run() {
+            // One answer carries the current conditions for the standby screen and the hourly/daily
+            // forecast for the home screen's weather band; timezone=auto puts the times in the location's zone.
             String url = String.format(Locale.ROOT,
-                    "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,weather_code",
+                    "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,weather_code"
+                            + "&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code"
+                            + "&timezone=auto&forecast_days=4",
                     cfg.weatherLat, cfg.weatherLon);
-            StandbyData.WeatherInfo w = StandbyData.parseOpenMeteo(get(url, null));
+            String body = get(url, null);
+            StandbyData.WeatherInfo w = StandbyData.parseOpenMeteo(body);
             if (w != null) {
                 weather = w;
-                publish(new StandbyData.StandbySnapshot(weather, ci));
+                StandbyData.Forecast f = StandbyData.parseOpenMeteoForecast(body);
+                if (f != null) forecast = f;
+                publish(new StandbyData.StandbySnapshot(weather, ci, forecast));
             } else {
                 Log.w(StandbyFeature.TAG, "weather not updated");
             }
@@ -87,7 +95,7 @@ final class StandbyFeed {
             }
             if (anyFailed) Log.w(StandbyFeature.TAG, "gitlab: some projects not updated");
             ci = fresh;
-            publish(new StandbyData.StandbySnapshot(weather, ci));
+            publish(new StandbyData.StandbySnapshot(weather, ci, forecast));
             worker.postDelayed(this, GITLAB_MS);
         }
     };

@@ -51,4 +51,9 @@
     <string name="weather_rain">雨</string>
     <string name="weather_snow">雪</string>
     <string name="weather_thunder">雷雨</string>
+    <string name="home_hour_now">现在</string>
+    <string name="home_hour_pattern">H时</string>
+    <string name="home_day_tomorrow">明天</string>
+    <string name="home_day_pattern">EEE</string>
+    <string name="home_hilo">最高 %1$d°  最低 %2$d°</string>
 </resources>

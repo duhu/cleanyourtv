@@ -64,6 +64,8 @@ is ignored, and a file that doesn't parse is ignored as a whole, so a theme can 
 | `feed_url` | string | One JSON with everything instead of the two sources above, fetched every minute: `{"weather":{"temp_c":21,"text":"多云"},"ci":[{"name":"x","status":"success","updated_at":"2026-10-20T06:12:00Z"}]}` |
 | `hdmi_auto_switch` | bool | Plugging a device into an HDMI port switches to it after a short toast; unplugging it brings Home back. Only changes count: a cable already in at boot does nothing |
 | `hdmi_tiles` | bool | A quick-switch tile in the dock row for every HDMI port with a device plugged in (plug icon, port name, green dot); OK on it switches there. Focus lands on it whenever Home shows, so a cable already in at boot is one OK away. The tile comes and goes with the cable |
+| `home_weather` | bool | On Home, under the header: a band with the current weather, today's high/low and the next 8 hours, then three day cards, from the same Open-Meteo request as the standby screen (needs `weather_lat`/`weather_lon`). Nothing in it takes focus; hidden until the first fetch succeeds
+| `home_status_bar` | bool | The standby screen's status bar (HDMI hint, CI cells) at the bottom of Home as well |
 
 ## Wallpapers
 

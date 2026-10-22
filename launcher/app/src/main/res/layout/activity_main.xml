@@ -191,6 +191,15 @@
             </LinearLayout>
         </RelativeLayout>
 
+        <!-- Weather band and day cards (config.xml home_weather); gone until the first weather arrives. -->
+        <com.gathin.tvhome.HomeWeatherView
+            android:id="@+id/homeWeather"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:visibility="gone"
+            android:importantForAccessibility="no" />
+
         <!-- The wrapper clips at the grid's edge; the grid itself must not clip so scaled tiles can overflow their cells. -->
         <FrameLayout
             android:layout_width="match_parent"
@@ -210,6 +219,14 @@
                 android:scrollbars="none"
                 android:descendantFocusability="afterDescendants" />
         </FrameLayout>
+
+        <!-- The standby screen's status bar on Home too (config.xml home_status_bar); hidden in code otherwise. -->
+        <include
+            layout="@layout/status_bar"
+            android:id="@+id/homeBar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginBottom="24dp" />
     </LinearLayout>
 
     <!-- The single floating glass highlight that springs between tiles. -->

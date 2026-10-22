@@ -1,11 +1,9 @@
 package com.gathin.tvhome;
 
 import android.content.Context;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,7 +23,6 @@ import java.util.Random;
  */
 public class StandbyView extends FrameLayout {
     private static final long FADE_IN_MS = 600, FADE_OUT_MS = 300, TOAST_MS = 1500, MINUTE_MS = 60_000;
-    private static final int MAX_CI_CELLS = 4;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Random random = new Random();
@@ -132,7 +129,7 @@ public class StandbyView extends FrameLayout {
             weather.setVisibility(GONE);
             weatherSep.setVisibility(GONE);
         } else {
-            String label = w.text != null ? w.text : weatherText(w.kind);
+            String label = w.text != null ? w.text : StatusCells.weatherText(getContext(), w.kind);
             weather.setText(label.isEmpty() ? String.format(Locale.getDefault(), "%d°", Math.round(w.tempC))
                     : String.format(Locale.getDefault(), "%s %d°", label, Math.round(w.tempC)));
             weather.setVisibility(VISIBLE);
@@ -193,93 +190,8 @@ public class StandbyView extends FrameLayout {
         content.setTranslationY((random.nextFloat() * 2 - 1) * range);
     }
 
-    /** The status bar: the fixed HDMI cell, then up to MAX_CI_CELLS CI cells from the snapshot. */
+    /** The status bar: the fixed HDMI cell, then one cell per CI entry from the snapshot. */
     private void renderBar() {
-        while (bar.getChildCount() > 1) bar.removeViewAt(bar.getChildCount() - 1);
-        long now = System.currentTimeMillis();
-        int n = 0;
-        for (StandbyData.CiInfo ci : snapshot.ci) {
-            if (n++ >= MAX_CI_CELLS) break;
-            bar.addView(ciCell(ci, now));
-        }
-    }
-
-    private View ciCell(StandbyData.CiInfo ci, long now) {
-        Context ctx = getContext();
-        LinearLayout cell = new LinearLayout(ctx);
-        cell.setOrientation(LinearLayout.HORIZONTAL);
-        cell.setGravity(Gravity.CENTER_VERTICAL);
-        int pad = (int) (14 * density);
-        cell.setPadding(pad, 0, pad, 0);
-        cell.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f));
-
-        View divider = new View(ctx);
-        divider.setBackgroundColor(0x40FFFFFF);
-        cell.addView(divider, new LinearLayout.LayoutParams(1, (int) (20 * density)));
-
-        View dot = new View(ctx);
-        GradientDrawable d = new GradientDrawable();
-        d.setShape(GradientDrawable.OVAL);
-        d.setColor(statusColor(ci.status));
-        dot.setBackground(d);
-        LinearLayout.LayoutParams dp = new LinearLayout.LayoutParams((int) (7 * density), (int) (7 * density));
-        dp.setMarginStart(pad);
-        cell.addView(dot, dp);
-
-        TextView name = new TextView(ctx);
-        name.setText(ci.name);
-        name.setTextColor(0xE6FFFFFF);
-        name.setTextSize(13f);
-        name.setSingleLine(true);
-        LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        np.setMarginStart((int) (9 * density));
-        cell.addView(name, np);
-
-        if (ci.updatedAtMillis > 0) {
-            TextView age = new TextView(ctx);
-            age.setText(ageText(StandbyData.age(ci.updatedAtMillis, now)));
-            age.setTextColor(0x8CFFFFFF);
-            age.setTextSize(11f);
-            age.setSingleLine(true);
-            LinearLayout.LayoutParams ap = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT);
-            ap.setMarginStart((int) (8 * density));
-            cell.addView(age, ap);
-        }
-        return cell;
-    }
-
-    private static int statusColor(StandbyData.CiStatus s) {
-        switch (s) {
-            case SUCCESS: return 0xFF4CD964;
-            case FAILED: return 0xFFFF5A5A;
-            case RUNNING: return 0xFFFFB340;
-            default: return 0x66FFFFFF;
-        }
-    }
-
-    private String ageText(StandbyData.Age a) {
-        Context ctx = getContext();
-        switch (a.unit) {
-            case StandbyData.Age.MINUTES: return ctx.getString(R.string.standby_age_minutes, a.count);
-            case StandbyData.Age.HOURS: return ctx.getString(R.string.standby_age_hours, a.count);
-            case StandbyData.Age.DAYS: return ctx.getString(R.string.standby_age_days, a.count);
-            default: return ctx.getString(R.string.standby_age_now);
-        }
-    }
-
-    private String weatherText(StandbyData.WeatherKind k) {
-        Context ctx = getContext();
-        switch (k) {
-            case CLEAR: return ctx.getString(R.string.weather_clear);
-            case CLOUDY: return ctx.getString(R.string.weather_cloudy);
-            case OVERCAST: return ctx.getString(R.string.weather_overcast);
-            case FOG: return ctx.getString(R.string.weather_fog);
-            case RAIN: return ctx.getString(R.string.weather_rain);
-            case SNOW: return ctx.getString(R.string.weather_snow);
-            case THUNDER: return ctx.getString(R.string.weather_thunder);
-            default: return "";
-        }
+        StatusCells.fill(bar, snapshot.ci, density);
     }
 }
