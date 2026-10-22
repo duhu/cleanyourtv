@@ -4,6 +4,7 @@ import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.admin.DevicePolicyManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -67,6 +68,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -174,6 +176,17 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private final Runnable returnToDefault = () -> StandbyFeature.run(() -> {
         pager.show(pagesConfig.defaultIndex, true);
     });
+    /** Idle dimming and the evening sleep window (config.xml idle_seconds, dim_percent, sleep_time, wake_time). */
+    private ScreenSchedule schedule = ScreenSchedule.from(0, 0, "", "");
+    private View dimLayer;
+    private boolean dimmed;
+    /** The key whose key-up is still to be swallowed after it undimmed Home; DimKeys.NO_KEY otherwise. */
+    private int swallowKey = DimKeys.NO_KEY;
+    /** elapsedRealtime of the last key Home saw (or of onResume). */
+    private long lastKeyAt;
+    private static final long DIM_MS = 600;
+    /** idle_seconds after the last key: dim, or sleep inside the window. */
+    private final Runnable idleTimeout = () -> StandbyFeature.run(this::onIdle);
     /** HDMI auto-switch (config.xml hdmi_auto_switch); fed by inputCallback. */
     private InputWatcher inputWatcher = new InputWatcher(false);
     /** Quick-switch tiles for plugged-in HDMI ports (config.xml hdmi_tiles); focus lands on the first one. */
@@ -241,6 +254,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             StandbyFeature.run(() -> {
                 if (pager.showing(weatherPage)) weatherPage.tick();
                 renderBar();
+                checkIdle();
             });
             handler.postDelayed(this, MINUTE_MS);
         }
@@ -277,11 +291,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         sky = findViewById(R.id.sky);
         sky.setIntensity(cfg.skyIntensity);
         pagesConfig = cfg.pages;
+        schedule = cfg.screen;
         pager = findViewById(R.id.pager);
         appsPage = findViewById(R.id.appsPage);
         clockPage = findViewById(R.id.clockPage);
         weatherPage = findViewById(R.id.weatherPage);
         toast = findViewById(R.id.toast);
+        dimLayer = findViewById(R.id.dimLayer);
         homeBar = findViewById(R.id.homeBar);
         statusCells = homeBar.findViewById(R.id.statusCells);
         pageDots = homeBar.findViewById(R.id.pageDots);
@@ -598,6 +614,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         StandbyFeature.run(() -> {
             // The page did not change (Home was already resting): the clock still has to start ticking again.
             if (!pager.show(pagesConfig.defaultIndex, false)) onPage(pager.current());
+            restartIdleTimer();
         });
         if (festive && diya != null) {
             diya.start();
@@ -689,8 +706,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         ambient.animate().cancel();
         handler.removeCallbacks(minuteTick);
         handler.removeCallbacks(returnToDefault);
+        handler.removeCallbacks(idleTimeout);
         StandbyFeature.run(() -> {
             clockPage.setShown(false);
+            hideDim(false);
         });
         if (diya != null) diya.stop();
         // Nothing of ours stays on screen over another app; an undecided prompt simply returns next time.
@@ -799,6 +818,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     /** On the clock and weather pages the remote flips pages (PageKeys); on the apps page it drives focus as ever. */
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
+        DimKeys.Action dim = StandbyFeature.run(() -> {
+            DimKeys.Action d = DimKeys.onKey(event.getKeyCode(), event.getAction(), dimmed, swallowKey);
+            restartIdleTimer();
+            if (d == DimKeys.Action.WAKE_CONSUME || d == DimKeys.Action.WAKE_PASS) hideDim(true);
+            if (d == DimKeys.Action.WAKE_CONSUME) swallowKey = event.getKeyCode();
+            if (d == DimKeys.Action.CONSUME) swallowKey = DimKeys.NO_KEY;
+            return d;
+        }, DimKeys.Action.PASS);
+        if (dim == DimKeys.Action.WAKE_CONSUME || dim == DimKeys.Action.CONSUME) return true;
         PageKeys.Action action = StandbyFeature.run(() -> {
             PageKeys.Action a = PageKeys.onKey(event.getKeyCode(), event.getAction(), event.getRepeatCount(), onAppsPage());
             restartReturnTimer();
@@ -819,7 +847,66 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         super.onUserInteraction();
         StandbyFeature.run(() -> {
             restartReturnTimer();
+            restartIdleTimer();
         });
+    }
+
+    // ---- idle dimming and the sleep window ----------------------------------------------------
+
+    /** A key, or Home coming to the front: the idle clock starts over. */
+    private void restartIdleTimer() {
+        lastKeyAt = SystemClock.elapsedRealtime();
+        handler.removeCallbacks(idleTimeout);
+        if (schedule.idleSeconds > 0) handler.postDelayed(idleTimeout, schedule.idleSeconds * 1000L);
+    }
+
+    /** The minute tick: a Home that dimmed before the window opened goes to sleep once it has. */
+    private void checkIdle() {
+        if (schedule.idleSeconds > 0 && SystemClock.elapsedRealtime() - lastKeyAt >= schedule.idleSeconds * 1000L) onIdle();
+    }
+
+    private void onIdle() {
+        LocalDateTime now = LocalDateTime.now();
+        int minute = now.getHour() * 60 + now.getMinute();
+        boolean canSleep = adminActive();
+        ScreenSchedule.Idle idle = schedule.afterIdle(now.getDayOfWeek(), minute, canSleep);
+        if (idle == ScreenSchedule.Idle.SLEEP) {
+            Log.i(StandbyFeature.TAG, "idle inside the sleep window: sleeping");
+            hideDim(false);
+            ((DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE)).lockNow();
+        } else if (idle == ScreenSchedule.Idle.DIM) {
+            if (!canSleep && schedule.inSleepWindow(now.getDayOfWeek(), minute)) {
+                Log.w(StandbyFeature.TAG, "ScreenAdmin is not active: dimming instead of sleeping");
+            }
+            showDim();
+        }
+    }
+
+    private boolean adminActive() {
+        DevicePolicyManager dpm = (DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE);
+        return dpm != null && dpm.isAdminActive(new ComponentName(this, ScreenAdmin.class));
+    }
+
+    private void showDim() {
+        if (dimmed) return;
+        dimmed = true;
+        dimLayer.animate().cancel();
+        dimLayer.setVisibility(View.VISIBLE);
+        float alpha = schedule.dimPercent / 100f;
+        if (animations) dimLayer.animate().alpha(alpha).setDuration(DIM_MS).start();
+        else dimLayer.setAlpha(alpha);
+    }
+
+    private void hideDim(boolean animate) {
+        if (!dimmed) return;
+        dimmed = false;
+        dimLayer.animate().cancel();
+        if (animate && animations) {
+            dimLayer.animate().alpha(0f).setDuration(DIM_MS).withEndAction(() -> dimLayer.setVisibility(View.GONE)).start();
+        } else {
+            dimLayer.setAlpha(0f);
+            dimLayer.setVisibility(View.GONE);
+        }
     }
 
     // ---- glass highlight -------------------------------------------------------------------------
@@ -1371,6 +1458,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (action.kind == InputWatcher.Kind.SWITCH) {
             String label = HdmiTiles.label(info.loadLabel(this));
             Log.d(StandbyFeature.TAG, "switching to " + action.inputId + " (" + label + ")");
+            hideDim(true);
             toast.show(label, () -> StandbyFeature.run(() -> {
                 if (!openInputChecked(action.inputId)) inputWatcher.switchFailed();
             }));
