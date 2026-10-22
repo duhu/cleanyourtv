@@ -3,22 +3,35 @@ package com.gathin.tvhome;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
-/** The four digits the flip clock shows for an hour and minute. */
+/** The six digits the flip clock shows for a time, and when the next second tick is due. */
 public class FlipClockTest {
+
+    private static char[] chars(String hhmmss) {
+        return hhmmss.replace(":", "").toCharArray();
+    }
 
     @Test
     public void twentyFourHourIsZeroPadded() {
-        assertArrayEquals("00:05".replace(":", "").toCharArray(), FlipClockView.digits(0, 5, true));
-        assertArrayEquals("14:18".replace(":", "").toCharArray(), FlipClockView.digits(14, 18, true));
-        assertArrayEquals("23:59".replace(":", "").toCharArray(), FlipClockView.digits(23, 59, true));
+        assertArrayEquals(chars("00:05:07"), FlipClockView.digits(0, 5, 7, true));
+        assertArrayEquals(chars("14:18:00"), FlipClockView.digits(14, 18, 0, true));
+        assertArrayEquals(chars("23:59:59"), FlipClockView.digits(23, 59, 59, true));
     }
 
     @Test
     public void twelveHourShowsTwelveAtMidnightAndNoon() {
-        assertArrayEquals("12:00".replace(":", "").toCharArray(), FlipClockView.digits(0, 0, false));
-        assertArrayEquals("12:30".replace(":", "").toCharArray(), FlipClockView.digits(12, 30, false));
-        assertArrayEquals("02:30".replace(":", "").toCharArray(), FlipClockView.digits(14, 30, false));
-        assertArrayEquals("11:59".replace(":", "").toCharArray(), FlipClockView.digits(23, 59, false));
+        assertArrayEquals(chars("12:00:00"), FlipClockView.digits(0, 0, 0, false));
+        assertArrayEquals(chars("12:30:45"), FlipClockView.digits(12, 30, 45, false));
+        assertArrayEquals(chars("02:30:10"), FlipClockView.digits(14, 30, 10, false));
+        assertArrayEquals(chars("11:59:59"), FlipClockView.digits(23, 59, 59, false));
+    }
+
+    @Test
+    public void nextTickLandsOnTheSecondBoundary() {
+        assertEquals(1000, FlipClockView.msToNextSecond(0));
+        assertEquals(1, FlipClockView.msToNextSecond(999));
+        assertEquals(766, FlipClockView.msToNextSecond(1234));
+        assertEquals(1000, FlipClockView.msToNextSecond(5000));
     }
 }

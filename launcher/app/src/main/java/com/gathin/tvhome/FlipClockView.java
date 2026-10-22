@@ -6,6 +6,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
+import android.os.Looper;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -23,40 +25,60 @@ import android.widget.LinearLayout;
 import java.util.Calendar;
 
 /**
- * A split-flap clock for the standby screen: four digit cards and a colon, each card split in a top
- * and a bottom half. When a digit changes, the top half folds down over the new digit and the new
- * bottom half unfolds after it, like a flip clock. Follows the TV's 12/24-hour setting and ticks on
- * the system's minute broadcast between {@link #start()} and {@link #stop()}.
+ * A split-flap clock for the standby screen: hour and minute cards with a colon between them, and two
+ * smaller seconds cards after them, each card split in a top and a bottom half. When a digit changes,
+ * the top half folds down over the new digit and the new bottom half unfolds after it, like a flip
+ * clock. Follows the TV's 12/24-hour setting and ticks on every second between {@link #start()} and
+ * {@link #stop()}, so the seconds keep the clock visibly moving.
  */
 public class FlipClockView extends LinearLayout {
-    private static final int CARD_W_DP = 150, CARD_H_DP = 220, GAP_DP = 14, RADIUS_DP = 14, SPLIT_DP = 3;
+    private static final int CARD_W_DP = 136, CARD_H_DP = 200, GAP_DP = 14, RADIUS_DP = 14, SPLIT_DP = 3;
+    /** The seconds cards: smaller, bottom edges on the line of the big cards, a double gap before them. */
+    private static final int SEC_W_DP = 84, SEC_H_DP = 124, SEC_GAP_DP = 28;
     private static final int CARD_COLOR = 0xFF1C1C1F, DIGIT_COLOR = 0xFFF2F2F2, COLON_COLOR = 0xFFD9D9D9;
     private static final long HALF_FLIP_MS = 280;
 
-    private final Digit[] digits = new Digit[4];
+    private final Digit[] digits = new Digit[6];
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean animated = true;
     private boolean running;
-    private final BroadcastReceiver tick = new BroadcastReceiver() {
+    private final Runnable secondTick = new Runnable() {
+        @Override
+        public void run() {
+            if (!running) return;
+            long now = System.currentTimeMillis();
+            setTime(now, animated);
+            handler.postDelayed(this, msToNextSecond(now));
+        }
+    };
+    /** The clock or time zone was set: show the new time at once, without a flip. */
+    private final BroadcastReceiver timeChanged = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            setTime(System.currentTimeMillis(), animated);
+            setTime(System.currentTimeMillis(), false);
         }
     };
 
     public FlipClockView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setOrientation(HORIZONTAL);
-        setGravity(Gravity.CENTER_VERTICAL);
+        setGravity(Gravity.BOTTOM);
         float d = getResources().getDisplayMetrics().density;
         Typeface face = getResources().getFont(R.font.outfit_light);
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 6; i++) {
             digits[i] = new Digit(context, d, face);
-            LayoutParams lp = new LayoutParams((int) (CARD_W_DP * d), (int) (CARD_H_DP * d));
-            if (i > 0) lp.setMarginStart((int) ((i == 2 ? 0 : GAP_DP) * d));
+            boolean seconds = i >= 4;
+            LayoutParams lp = seconds
+                    ? new LayoutParams((int) (SEC_W_DP * d), (int) (SEC_H_DP * d))
+                    : new LayoutParams((int) (CARD_W_DP * d), (int) (CARD_H_DP * d));
+            lp.gravity = Gravity.BOTTOM;
+            int gap = i == 0 || i == 2 ? 0 : i == 4 ? SEC_GAP_DP : GAP_DP;
+            lp.setMarginStart((int) (gap * d));
             addView(digits[i], lp);
             if (i == 1) {
                 Colon colon = new Colon(context, d);
                 LayoutParams cp = new LayoutParams((int) (GAP_DP * 4 * d), (int) (CARD_H_DP * d));
+                cp.gravity = Gravity.BOTTOM;
                 addView(colon, cp);
             }
         }
@@ -68,22 +90,29 @@ public class FlipClockView extends LinearLayout {
         this.animated = animated;
     }
 
-    /** Shows the current time at once and flips on every minute from now on. */
+    /** Shows the current time at once and flips on every second from now on. */
     void start() {
-        setTime(System.currentTimeMillis(), false);
+        long now = System.currentTimeMillis();
+        setTime(now, false);
         if (running) return;
         running = true;
-        IntentFilter f = new IntentFilter(Intent.ACTION_TIME_TICK);
-        f.addAction(Intent.ACTION_TIME_CHANGED);
+        IntentFilter f = new IntentFilter(Intent.ACTION_TIME_CHANGED);
         f.addAction(Intent.ACTION_TIMEZONE_CHANGED);
-        getContext().registerReceiver(tick, f);
+        getContext().registerReceiver(timeChanged, f);
+        handler.postDelayed(secondTick, msToNextSecond(now));
     }
 
     void stop() {
         if (!running) return;
         running = false;
-        getContext().unregisterReceiver(tick);
+        handler.removeCallbacks(secondTick);
+        getContext().unregisterReceiver(timeChanged);
         for (Digit digit : digits) digit.settle();
+    }
+
+    /** Milliseconds until the next whole second, 1 to 1000: the tick lands right after the digits change. */
+    static long msToNextSecond(long nowMillis) {
+        return 1000 - Math.floorMod(nowMillis, 1000L);
     }
 
     @Override
@@ -95,18 +124,20 @@ public class FlipClockView extends LinearLayout {
     private void setTime(long millis, boolean flip) {
         Calendar c = Calendar.getInstance();
         c.setTimeInMillis(millis);
-        char[] now = digits(c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), DateFormat.is24HourFormat(getContext()));
-        for (int i = 0; i < 4; i++) digits[i].show(now[i], flip);
+        char[] now = digits(c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND),
+                DateFormat.is24HourFormat(getContext()));
+        for (int i = 0; i < 6; i++) digits[i].show(now[i], flip);
     }
 
-    /** "HH" and "MM" as four characters; 12-hour mode shows 12 for midnight and noon, zero-padded. */
-    static char[] digits(int hourOfDay, int minute, boolean is24h) {
+    /** "HH", "MM" and "SS" as six characters; 12-hour mode shows 12 for midnight and noon, zero-padded. */
+    static char[] digits(int hourOfDay, int minute, int second, boolean is24h) {
         int h = hourOfDay;
         if (!is24h) {
             h = hourOfDay % 12;
             if (h == 0) h = 12;
         }
-        return new char[]{(char) ('0' + h / 10), (char) ('0' + h % 10), (char) ('0' + minute / 10), (char) ('0' + minute % 10)};
+        return new char[]{(char) ('0' + h / 10), (char) ('0' + h % 10), (char) ('0' + minute / 10), (char) ('0' + minute % 10),
+                (char) ('0' + second / 10), (char) ('0' + second % 10)};
     }
 
     /** One card: the halves that stay still, the top half that folds down and the bottom half that unfolds. */
