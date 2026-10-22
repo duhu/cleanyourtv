@@ -1,0 +1,46 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>P1 时钟页</title>
+<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="home.css"><link rel="stylesheet" href="wx.css"><link rel="stylesheet" href="pager.css">
+<style>
+  /* FlipClockView as shipped: 136×200dp cards, 14dp gap, 84×124dp second cards 28dp further right, all bottom-aligned. */
+  .center { position: absolute; left: 0; right: 0; top: 196px; display: flex; flex-direction: column; align-items: center; }
+  .clock { display: flex; align-items: flex-end; }
+  .card { position: relative; width: 272px; height: 400px; margin-left: 28px; }
+  .card.sec { width: 168px; height: 248px; }
+  .card:first-child, .colon + .card { margin-left: 0; }
+  .card.sec.first { margin-left: 56px; }
+  .half { position: absolute; left: 0; right: 0; height: calc(50% - 3px); overflow: hidden; background: #1c1c1f; }
+  .half.top { top: 0; border-radius: 28px 28px 0 0; }
+  .half.bot { bottom: 0; border-radius: 0 0 28px 28px; }
+  .half span { position: absolute; left: 0; right: 0; text-align: center; font-family: var(--latin); font-weight: 300; color: #f2f2f2; }
+  .card:not(.sec) .half span { height: 400px; line-height: 400px; font-size: 340px; }
+  .card.sec .half span { height: 248px; line-height: 248px; font-size: 210px; }
+  .half.top span { top: 0; }
+  .card:not(.sec) .half.bot span { top: -203px; }
+  .card.sec .half.bot span { top: -127px; }
+  .colon { width: 112px; height: 400px; position: relative; }
+  .colon i { position: absolute; left: 49px; width: 14px; height: 14px; border-radius: 50%; background: #d9d9d9; }
+  .colon i:first-child { top: 150px; } .colon i:last-child { top: 250px; }
+  .date { margin-top: 28px; font-size: 42px; color: var(--t70); font-weight: 300; display: flex; gap: 28px; align-items: center; }
+  .date .sep { width: 2px; height: 34px; background: var(--t25); }
+</style></head><body>
+  <div class="center">
+    <div class="clock">
+      <div class="card"><div class="half top"><span>1</span></div><div class="half bot"><span>1</span></div></div>
+      <div class="card"><div class="half top"><span>4</span></div><div class="half bot"><span>4</span></div></div>
+      <div class="colon"><i></i><i></i></div>
+      <div class="card"><div class="half top"><span>2</span></div><div class="half bot"><span>2</span></div></div>
+      <div class="card"><div class="half top"><span>0</span></div><div class="half bot"><span>0</span></div></div>
+      <div class="card sec first"><div class="half top"><span>3</span></div><div class="half bot"><span>3</span></div></div>
+      <div class="card sec"><div class="half top"><span>7</span></div><div class="half bot"><span>7</span></div></div>
+    </div>
+    <div class="date"><span class="num">10月22日</span><span class="sep"></span><span>星期四</span><span class="sep"></span><span>晴 <span class="num">20°</span></span></div>
+  </div>
+  <div class="bar panel">
+    <div class="cell"><span class="icon">HDMI</span><span>插线即投屏</span></div>
+    <div class="cell"><span class="dot" style="background:var(--ok)"></span><span>cleanyourtv</span><span class="k">12 分钟前</span></div>
+    <div class="cell"><span class="dot" style="background:var(--warn)"></span><span>api-gateway</span><span class="k">刚刚</span></div>
+    <div class="spacer"></div>
+    <div class="dots"><i></i><i class="on"></i><i></i><span class="hint"><span class="num">‹ ›</span> 翻页</span></div>
+  </div>
+  <div class="note" style="bottom:160px">P1 · 默认页（第 2 页/共 3 页）：翻页钟带秒卡；底部状态条每页共用，右端页点 + 翻页提示；左 = 应用页，右 = 天气页</div>
+</body></html>

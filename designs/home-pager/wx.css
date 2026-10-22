@@ -1,0 +1,28 @@
+/* Weather on Home: shared bits for the G mockups. 2px per dp. Icons are inline SVG symbols (#sun, #psun, #cloud, #rain, #storm). */
+.topbtns .pill { opacity: .4; background: none; border-color: rgba(255,255,255,.35); }
+.row { position: absolute; left: 112px; display: flex; gap: 36px; align-items: center; }
+.btn { display: inline-flex; align-items: center; gap: 26px; height: 120px; padding: 0 56px 0 28px; border-radius: 60px;
+  background: none; border: 2px solid rgba(255,255,255,.35); font-size: 38px; font-weight: 500; opacity: .55; }
+.btn img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; }
+.btn.lit { opacity: 1; background: linear-gradient(rgba(255,255,255,.26), rgba(255,255,255,.12)); border: 3px solid rgba(255,255,255,.9);
+  box-shadow: 0 20px 50px rgba(0,0,0,.45); transform: scale(1.06); transform-origin: left center; }
+.bar { position: absolute; left: 96px; right: 96px; bottom: 48px; height: 100px; display: flex; align-items: center; padding: 0 20px; }
+.cell { display: flex; align-items: center; gap: 18px; padding: 0 28px; height: 60px; font-size: 26px; color: var(--t90); border-left: 1px solid var(--t25); }
+.cell:first-child { border-left: 0; }
+.cell .k { color: var(--t55); font-size: 22px; }
+.cell .icon { display: inline-grid; place-items: center; width: 40px; height: 40px; border: 2px solid var(--t40); border-radius: 10px; font-family: var(--latin); font-size: 14px; letter-spacing: .05em; color: var(--t55); }
+.wi { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.wi.sun { stroke: #ffd166; } .wi.rain .drop { stroke: #7cc4ff; } .wi.storm .bolt { stroke: #ffd166; fill: #ffd166; }
+.temp { font-family: var(--latin); font-weight: 200; letter-spacing: -.04em; line-height: 1; }
+.cond { font-size: 34px; color: var(--t90); }
+.hl { font-size: 26px; color: var(--t55); margin-top: 8px; }
+.hours { display: flex; justify-content: space-between; }
+.h { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.h .hh { font-size: 22px; color: var(--t55); font-family: var(--latin); }
+.h .ht { font-size: 30px; font-family: var(--latin); font-weight: 300; }
+.h.now .hh { color: var(--t90); }
+.dy { display: flex; align-items: center; gap: 22px; font-size: 28px; }
+.dy .dn { width: 80px; color: var(--t90); }
+.dy .dc { color: var(--t55); flex: 1; }
+.dy .range { font-family: var(--latin); font-weight: 300; font-size: 30px; }
+.dy .range b { font-weight: 400; } .dy .range i { font-style: normal; color: var(--t40); }

@@ -1,0 +1,54 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>P2 天气页</title>
+<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="home.css"><link rel="stylesheet" href="wx.css"><link rel="stylesheet" href="pager.css">
+<style>
+  .cur { position: absolute; left: 160px; top: 150px; display: flex; align-items: center; gap: 48px; }
+  .cur svg { width: 200px; height: 200px; }
+  .cur .temp { font-size: 260px; }
+  .cur .cond { font-size: 48px; }
+  .cur .hl { font-size: 32px; margin-top: 14px; }
+  .cur .city { font-size: 28px; color: var(--t40); margin-top: 10px; }
+  .hours { position: absolute; left: 160px; right: 160px; top: 470px; padding: 0 60px; box-sizing: border-box; }
+  .h { gap: 20px; }
+  .h .hh { font-size: 26px; } .h .ht { font-size: 38px; }
+  .h svg { width: 64px; height: 64px; }
+  .days { position: absolute; left: 120px; right: 120px; top: 690px; display: flex; gap: 40px; }
+  .dy { flex: 1; height: 150px; padding: 0 40px; box-sizing: border-box; font-size: 32px; gap: 24px; }
+  .dy .dn { width: 90px; } .dy .dc, .dy .range { white-space: nowrap; } .dy .range { font-size: 36px; }
+  .dy svg { width: 56px; height: 56px; }
+</style></head><body>
+  <svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="sun" viewBox="0 0 48 48"><g class="wi sun"><circle cx="24" cy="24" r="9"/><path d="M24 4v6M24 38v6M4 24h6M38 24h6M9.9 9.9l4.2 4.2M33.9 33.9l4.2 4.2M9.9 38.1l4.2-4.2M33.9 14.1l4.2-4.2"/></g></symbol>
+<symbol id="psun" viewBox="0 0 48 48"><g class="wi sun"><circle cx="17" cy="17" r="7"/><path d="M17 3v4M3 17h4M7.1 7.1l2.8 2.8M27 7.1l-2.8 2.8"/></g><path class="wi" d="M16 40h20a8 8 0 0 0 1-15.9A11 11 0 0 0 16 27a6.5 6.5 0 0 0 0 13z"/></symbol>
+<symbol id="cloud" viewBox="0 0 48 48"><path class="wi" d="M14 38h20a9 9 0 0 0 1-17.9A12 12 0 0 0 12 24a7 7 0 0 0 2 14z"/></symbol>
+<symbol id="rain" viewBox="0 0 48 48"><g class="wi rain"><path d="M14 32h20a9 9 0 0 0 1-17.9A12 12 0 0 0 12 18a7 7 0 0 0 2 14z"/><path class="drop" d="M18 37l-2 6M26 37l-2 6M34 37l-2 6"/></g></symbol>
+<symbol id="storm" viewBox="0 0 48 48"><g class="wi storm"><path d="M14 30h20a9 9 0 0 0 1-17.9A12 12 0 0 0 12 16a7 7 0 0 0 2 14z"/><path class="bolt" d="M26 28l-6 9h5l-2 8 7-11h-5z"/></g></symbol>
+</defs></svg>
+  <div class="cur"><svg><use href="#sun"/></svg><div class="temp">20°</div><div><div class="cond">晴</div><div class="hl">最高 21° &nbsp;最低 12°</div><div class="city">苏州 · 10月22日 星期四</div></div></div>
+  <div class="hours">
+    <div class="h now"><span class="hh">现在</span><svg><use href="#sun"/></svg><span class="ht">20°</span></div>
+    <div class="h"><span class="hh">13时</span><svg><use href="#psun"/></svg><span class="ht">21°</span></div>
+    <div class="h"><span class="hh">14时</span><svg><use href="#psun"/></svg><span class="ht">21°</span></div>
+    <div class="h"><span class="hh">15时</span><svg><use href="#sun"/></svg><span class="ht">20°</span></div>
+    <div class="h"><span class="hh">16时</span><svg><use href="#psun"/></svg><span class="ht">19°</span></div>
+    <div class="h"><span class="hh">17时</span><svg><use href="#psun"/></svg><span class="ht">18°</span></div>
+    <div class="h"><span class="hh">18时</span><svg><use href="#cloud"/></svg><span class="ht">17°</span></div>
+    <div class="h"><span class="hh">19时</span><svg><use href="#cloud"/></svg><span class="ht">16°</span></div>
+    <div class="h"><span class="hh">20时</span><svg><use href="#cloud"/></svg><span class="ht">15°</span></div>
+    <div class="h"><span class="hh">21时</span><svg><use href="#rain"/></svg><span class="ht">15°</span></div>
+    <div class="h"><span class="hh">22时</span><svg><use href="#rain"/></svg><span class="ht">14°</span></div>
+    <div class="h"><span class="hh">23时</span><svg><use href="#cloud"/></svg><span class="ht">14°</span></div>
+  </div>
+  <div class="days">
+    <div class="dy panel"><span class="dn">明天</span><svg><use href="#rain"/></svg><span class="dc">阵雨</span><span class="range"><i>15°</i> / <b>23°</b></span></div>
+    <div class="dy panel"><span class="dn">周六</span><svg><use href="#rain"/></svg><span class="dc">小雨</span><span class="range"><i>18°</i> / <b>22°</b></span></div>
+    <div class="dy panel"><span class="dn">周日</span><svg><use href="#storm"/></svg><span class="dc">雷雨</span><span class="range"><i>19°</i> / <b>23°</b></span></div>
+  </div>
+  <div class="bar panel">
+    <div class="cell"><span class="icon">HDMI</span><span>插线即投屏</span></div>
+    <div class="cell"><span class="dot" style="background:var(--ok)"></span><span>cleanyourtv</span><span class="k">12 分钟前</span></div>
+    <div class="cell"><span class="dot" style="background:var(--warn)"></span><span>api-gateway</span><span class="k">刚刚</span></div>
+    <div class="spacer"></div>
+    <div class="dots"><i></i><i></i><i class="on"></i><span class="hint"><span class="num">‹ ›</span> 翻页</span></div>
+  </div>
+  <div class="note" style="bottom:160px">P2 · 天气页（第 3 页）：现在 + 12 小时 + 三天；按左回时钟，按 OK 去应用页</div>
+</body></html>

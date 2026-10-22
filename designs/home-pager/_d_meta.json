@@ -1,0 +1,51 @@
+{
+  "type": "design",
+  "designSystems": [],
+  "primaryDesignSystem": null,
+  "assets": {
+    "P1 时钟页": {
+      "versions": [
+        {
+          "path": "P1 时钟页.html",
+          "createdAt": "2026-10-22T04:53:31.213Z",
+          "status": "approved",
+          "subtitle": "P1 时钟页：默认页，翻页钟带秒卡，共用状态条 + 页点",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ]
+    },
+    "P2 天气页": {
+      "versions": [
+        {
+          "path": "P2 天气页.html",
+          "createdAt": "2026-10-22T04:53:31.238Z",
+          "status": "approved",
+          "subtitle": "P2 天气页：现在 + 12 小时 + 三天",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ]
+    },
+    "P3 应用页": {
+      "versions": [
+        {
+          "path": "P3 应用页.html",
+          "createdAt": "2026-10-22T04:53:31.263Z",
+          "status": "approved",
+          "subtitle": "P3 应用页：原主页去掉天气横条，加页点",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ]
+    }
+  },
+  "createdAt": "2026-10-22T04:53:31.214Z",
+  "updatedAt": "2026-10-22T05:17:37.509Z"
+}
