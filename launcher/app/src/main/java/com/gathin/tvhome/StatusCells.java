@@ -10,9 +10,10 @@ import android.widget.TextView;
 import java.util.List;
 
 /**
- * The cells of the status bar (res/layout/status_bar.xml) that the standby screen and the home screen
- * share: a coloured dot, the project name and how long ago its pipeline changed, after the fixed HDMI
- * cell the layout carries. Also the words for a weather kind, used wherever weather is shown.
+ * The cells of the status bar (res/layout/status_bar.xml) under the home pages: a coloured dot, the
+ * project name and how long ago its pipeline changed, after the fixed HDMI cell the layout carries;
+ * and the page dots at its right end. Also the words and icons for a weather kind, used wherever
+ * weather is shown.
  */
 final class StatusCells {
     static final int MAX_CI_CELLS = 4;
@@ -21,14 +22,42 @@ final class StatusCells {
     }
 
     /** Replaces every cell after the first (the HDMI hint) with one per CI entry, at most MAX_CI_CELLS. */
-    static void fill(LinearLayout bar, List<StandbyData.CiInfo> ci, float density) {
-        while (bar.getChildCount() > 1) bar.removeViewAt(bar.getChildCount() - 1);
+    static void fill(LinearLayout cells, List<StandbyData.CiInfo> ci, float density) {
+        while (cells.getChildCount() > 1) cells.removeViewAt(cells.getChildCount() - 1);
         long now = System.currentTimeMillis();
         int n = 0;
         for (StandbyData.CiInfo c : ci) {
             if (n++ >= MAX_CI_CELLS) break;
-            bar.addView(ciCell(bar.getContext(), density, c, now));
+            cells.addView(ciCell(cells.getContext(), density, c, now));
         }
+    }
+
+    /** One dot per page, the current one brighter and larger, then the flip hint; nothing with a single page. */
+    static void dots(LinearLayout dots, int count, int current, float density) {
+        dots.removeAllViews();
+        if (count < 2) return;
+        Context ctx = dots.getContext();
+        for (int i = 0; i < count; i++) {
+            boolean on = i == current;
+            View dot = new View(ctx);
+            GradientDrawable d = new GradientDrawable();
+            d.setShape(GradientDrawable.OVAL);
+            d.setColor(on ? 0xE6FFFFFF : 0x40FFFFFF);
+            dot.setBackground(d);
+            int size = (int) ((on ? 8 : 7) * density);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(size, size);
+            if (i > 0) lp.setMarginStart((int) (9 * density));
+            dots.addView(dot, lp);
+        }
+        TextView hint = new TextView(ctx);
+        hint.setText(R.string.pages_hint);
+        hint.setTextColor(0x66FFFFFF);
+        hint.setTextSize(11f);
+        hint.setSingleLine(true);
+        LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        hp.setMarginStart((int) (14 * density));
+        dots.addView(hint, hp);
     }
 
     static View ciCell(Context ctx, float density, StandbyData.CiInfo ci, long now) {

@@ -41,6 +41,20 @@
         android:paddingEnd="56dp"
         android:paddingTop="26dp">
 
+        <!-- The home pages (config.xml pages): the apps page is the launcher itself, the others sit beside it
+             and slide in on Left/Right (docs/superpowers/specs/2026-10-22-home-pager-design.md). -->
+        <com.gathin.tvhome.PagerView
+            android:id="@+id/pager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/appsPage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
@@ -191,15 +205,6 @@
             </LinearLayout>
         </RelativeLayout>
 
-        <!-- Weather band and day cards (config.xml home_weather); gone until the first weather arrives. -->
-        <com.gathin.tvhome.HomeWeatherView
-            android:id="@+id/homeWeather"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
-            android:visibility="gone"
-            android:importantForAccessibility="no" />
-
         <!-- The wrapper clips at the grid's edge; the grid itself must not clip so scaled tiles can overflow their cells. -->
         <FrameLayout
             android:layout_width="match_parent"
@@ -219,8 +224,24 @@
                 android:scrollbars="none"
                 android:descendantFocusability="afterDescendants" />
         </FrameLayout>
+        </LinearLayout>
 
-        <!-- The standby screen's status bar on Home too (config.xml home_status_bar); hidden in code otherwise. -->
+        <com.gathin.tvhome.ClockPageView
+            android:id="@+id/clockPage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:importantForAccessibility="no" />
+
+        <com.gathin.tvhome.WeatherPageView
+            android:id="@+id/weatherPage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:importantForAccessibility="no" />
+        </com.gathin.tvhome.PagerView>
+
+        <!-- The status bar (config.xml status_bar) and the page dots; hidden in code when neither applies. -->
         <include
             layout="@layout/status_bar"
             android:id="@+id/homeBar"
@@ -237,9 +258,9 @@
         android:alpha="0"
         android:importantForAccessibility="no" />
 
-    <!-- Meeting-room standby screen and HDMI toast, over everything (config.xml standby / hdmi_auto_switch). -->
-    <com.gathin.tvhome.StandbyView
-        android:id="@+id/standby"
+    <!-- HDMI toast over everything (config.xml hdmi_auto_switch). -->
+    <com.gathin.tvhome.HdmiToastView
+        android:id="@+id/toast"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"

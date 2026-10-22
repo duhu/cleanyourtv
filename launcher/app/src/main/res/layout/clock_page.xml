@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The clock page (ClockPageView): a large clock, the date and the current weather, centred near the
+     top; the whole column drifts a little once a minute. Mockup: designs/home-pager/P1 时钟页.html. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:id="@+id/clockContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="72dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <com.gathin.tvhome.FlipClockView
+            android:id="@+id/clockFlip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <TextClock
+            android:id="@+id/clockPlain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format12Hour="h:mm"
+            android:format24Hour="HH:mm"
+            android:textColor="#FFFFFFFF"
+            android:textSize="220sp"
+            android:fontFamily="@font/outfit_extralight"
+            android:letterSpacing="-0.03"
+            android:includeFontPadding="false" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextClock
+                android:id="@+id/clockDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:format12Hour="@string/standby_date_pattern"
+                android:format24Hour="@string/standby_date_pattern"
+                android:textColor="#B3FFFFFF"
+                android:textSize="21sp"
+                android:fontFamily="@font/outfit_light" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="17dp"
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="14dp"
+                android:background="#40FFFFFF" />
+
+            <TextClock
+                android:id="@+id/clockWeekday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:format12Hour="@string/standby_weekday_pattern"
+                android:format24Hour="@string/standby_weekday_pattern"
+                android:textColor="#B3FFFFFF"
+                android:textSize="21sp"
+                android:fontFamily="@font/outfit_light" />
+
+            <View
+                android:id="@+id/clockWeatherSep"
+                android:layout_width="1dp"
+                android:layout_height="17dp"
+                android:layout_marginStart="14dp"
+                android:layout_marginEnd="14dp"
+                android:background="#40FFFFFF"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/clockWeather"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#B3FFFFFF"
+                android:textSize="21sp"
+                android:fontFamily="@font/outfit_light"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+</merge>

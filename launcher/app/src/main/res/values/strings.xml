@@ -65,7 +65,9 @@
     <string name="card_state_new_key">New key</string>
     <string name="card_state_new_label">New name</string>
 
-    <!-- Meeting-room standby screen -->
+    <!-- Home pages: the clock page, the weather page, the status bar and the HDMI toast -->
+    <string name="pages_hint">‹ › Pages</string>
+    <string name="weather_waiting">Waiting for weather…</string>
     <string name="standby_date_pattern">MMMM d</string>
     <string name="standby_weekday_pattern" translatable="false">EEEE</string>
     <string name="standby_hdmi_hint">Plug in HDMI to share</string>
