@@ -75,6 +75,8 @@ final class Config {
     final Festival festival;
     /** The home pages and their sources (pages, default_page, page_return_seconds, flip_clock, status_bar, hdmi_auto_switch, weather_*, gitlab_*, feed_url). */
     final PagesConfig pages;
+    /** Idle dimming and the evening sleep window (idle_seconds, dim_percent, sleep_time, wake_time). */
+    final ScreenSchedule screen;
     /** When not empty, only these packages get tiles (config.xml, only_apps). */
     final List<String> onlyApps;
     /** The greeting line above the clock (config.xml, show_greeting). */
@@ -93,7 +95,7 @@ final class Config {
                    boolean shamsiDate, boolean moduleCards, boolean reducedMotion, String vpnApp,
                    boolean showHomeSettingsShortcut, int backgroundColor, int skyIntensity,
                    int[] settingsKeycodes, boolean settingsKeyPanel, File wallpaper, boolean overlayApplied,
-                   Festival festival, PagesConfig pages, List<String> onlyApps, boolean showGreeting,
+                   Festival festival, PagesConfig pages, ScreenSchedule screen, List<String> onlyApps, boolean showGreeting,
                    String tileStyle, boolean dimTopButtons, boolean hdmiTiles) {
         this.dockApps = Collections.unmodifiableList(dockApps);
         this.fillDock = fillDock;
@@ -123,6 +125,7 @@ final class Config {
         this.overlayApplied = overlayApplied;
         this.festival = festival;
         this.pages = pages;
+        this.screen = screen;
         this.onlyApps = Collections.unmodifiableList(onlyApps);
         this.showGreeting = showGreeting;
         this.tileStyle = tileStyle;
@@ -171,6 +174,10 @@ final class Config {
         int returnSeconds = res.getInteger(R.integer.page_return_seconds);
         boolean flipClock = res.getBoolean(R.bool.flip_clock);
         boolean statusBar = res.getBoolean(R.bool.status_bar);
+        int idleSeconds = res.getInteger(R.integer.idle_seconds);
+        int dimPercent = res.getInteger(R.integer.dim_percent);
+        String sleepTime = res.getString(R.string.sleep_time).trim();
+        String wakeTime = res.getString(R.string.wake_time).trim();
         String weatherLat = res.getString(R.string.weather_lat).trim();
         String weatherLon = res.getString(R.string.weather_lon).trim();
         String gitlabUrl = res.getString(R.string.gitlab_url).trim();
@@ -218,6 +225,10 @@ final class Config {
             returnSeconds = integer(json, "page_return_seconds", returnSeconds, 0, PagesConfig.MAX_RETURN);
             flipClock = bool(json, "flip_clock", flipClock);
             statusBar = bool(json, "status_bar", statusBar);
+            idleSeconds = integer(json, "idle_seconds", idleSeconds, 0, ScreenSchedule.MAX_IDLE);
+            dimPercent = integer(json, "dim_percent", dimPercent, 0, ScreenSchedule.MAX_DIM);
+            sleepTime = string(json, "sleep_time", sleepTime);
+            wakeTime = string(json, "wake_time", wakeTime);
             weatherLat = numberText(json, "weather_lat", weatherLat);
             weatherLon = numberText(json, "weather_lon", weatherLon);
             gitlabUrl = string(json, "gitlab_url", gitlabUrl);
@@ -251,6 +262,7 @@ final class Config {
                 festival,
                 PagesConfig.from(pages, defaultPage, returnSeconds, flipClock, statusBar, weatherLat, weatherLon,
                         gitlabUrl, gitlabToken, gitlabProjects, feedUrl, hdmiAutoSwitch),
+                ScreenSchedule.from(idleSeconds, dimPercent, sleepTime, wakeTime),
                 only, showGreeting, "capsule".equals(tileStyle) ? "capsule" : "card", dimTopButtons, hdmiTiles);
     }
 

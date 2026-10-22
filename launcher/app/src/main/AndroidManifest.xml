@@ -127,5 +127,26 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/input_key_service" />
         </service>
+
+        <!-- Evening sleep (ScreenSchedule): lockNow needs a device admin with force-lock; build-and-install.sh
+             activates it over adb, ScreenAdminOff deactivates it before an uninstall. -->
+        <receiver
+            android:name=".ScreenAdmin"
+            android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/screen_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".ScreenAdminOff"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.gathin.tvhome.SCREEN_ADMIN_OFF" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

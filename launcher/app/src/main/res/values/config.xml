@@ -140,6 +140,16 @@
     <bool name="flip_clock">true</bool>
     <!-- A status bar at the bottom of every page: the HDMI hint and the latest CI pipeline of each GitLab project. -->
     <bool name="status_bar">false</bool>
+    <!-- Seconds without a key press before Home dims (dim_percent) or, inside the sleep window, puts the TV to
+         sleep; 0 never, at most 86400. -->
+    <integer name="idle_seconds">0</integer>
+    <!-- Opacity of the black layer over Home after idle_seconds, 0 to 95; 0 never dims. -->
+    <integer name="dim_percent">50</integer>
+    <!-- The sleep window, HH:mm: from sleep_time to wake_time on weekdays, all of Saturday and Sunday. Inside it an
+         idle Home puts the TV to sleep (needs the ScreenAdmin device admin, see build-and-install.sh). Both empty
+         keeps the TV awake. -->
+    <string name="sleep_time" translatable="false"></string>
+    <string name="wake_time" translatable="false"></string>
     <!-- Open-Meteo coordinates, decimal degrees as text; both empty keeps the weather off. -->
     <string name="weather_lat" translatable="false"></string>
     <string name="weather_lon" translatable="false"></string>

@@ -243,6 +243,11 @@ tools/theme.sh themes/aurora                                 # push a theme; --r
 | [`tools/theme.sh`](tools/theme.sh) | Push a folder from [`themes/`](themes/) to the launcher and restart Home. |
 | [`launcher/build-and-install.sh`](launcher/build-and-install.sh) | Builds a shrunk release (about 300 KB), installs it, switches Home, and rolls back if Home does not land on it. |
 
+The install also makes the launcher a device admin with the force-lock policy only
+(`dpm set-active-admin`), which a theme's `sleep_time` window uses to put the TV to sleep. An active
+admin blocks `pm uninstall`; before uninstalling the launcher run
+`am broadcast -n com.gathin.tvhome/.ScreenAdminOff -a com.gathin.tvhome.SCREEN_ADMIN_OFF` on the TV.
+
 Debloat list paths passed to `disable.sh` and `restore.sh` are relative to the directory you run
 from, so your own lists can live outside the repository. Absolute paths also work.
 

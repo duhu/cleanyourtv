@@ -62,6 +62,9 @@ is ignored, and a file that doesn't parse is ignored as a whole, so a theme can 
 | `page_return_seconds` | 0 to 86400 | Seconds on another page without a key press before `default_page` comes back; 0 never (600 by default) |
 | `flip_clock` | bool | The clock page as split-flap cards: hour and minute cards plus two smaller seconds cards, flipping on every change (true by default); false shows plain thin digits without seconds |
 | `status_bar` | bool | A bar at the bottom of every page: `插线即投屏`, then the latest CI pipeline of each `gitlab_projects` entry. With more than one page the bar's right end shows page dots (they show without the bar too) |
+| `idle_seconds` | 0 to 86400 | Seconds without a key press before Home dims, or sleeps inside the window below; 0 never (the default) |
+| `dim_percent` | 0 to 95 | Opacity of the black layer that dims Home after `idle_seconds`; 0 never dims (50 by default). Any key brings the page back; the first press is swallowed unless it is a volume key |
+| `sleep_time`, `wake_time` | `HH:mm` | The sleep window: weekdays from `sleep_time` to `wake_time`, all of Saturday and Sunday. Inside it an idle Home puts the TV to sleep like the power key (needs the device admin that `build-and-install.sh` activates). Nothing wakes the TV: the remote's power key does. Both empty keeps the TV awake |
 | `weather_lat`, `weather_lon` | number | Open-Meteo coordinates for the weather on the clock and weather pages; both needed, no API key |
 | `gitlab_url`, `gitlab_token`, `gitlab_projects` | string, string, list of `group/project` | Latest pipeline of each project in the status bar, fetched every 5 minutes with a read-only (`read_api`) token. The token sits in plain text in the TV's config.json; `REPLACE_ME` keeps the source off |
 | `feed_url` | string | One JSON with everything instead of the two sources above, fetched every minute: `{"weather":{"temp_c":21,"text":"多云"},"ci":[{"name":"x","status":"success","updated_at":"2026-10-20T06:12:00Z"}]}` |
@@ -108,9 +111,13 @@ them; the TV rests on the clock and goes back to it ten minutes after the last k
 soon as you come back from an app. The status bar at the bottom shows `插线即投屏` and the latest CI
 pipeline of each `gitlab_projects` entry. Plugging a laptop into any HDMI port shows "HDMI 2
 detected, switching…" for a moment and switches to it; unplugging comes back. The TV needs a network
-for the weather and CI (the clock works without). Put a read-only GitLab token in `gitlab_token`
-before pushing the theme, and change the coordinates to your office. The design and the device
-checks are in `docs/superpowers/specs/2026-10-22-home-pager-design.md`.
+for the weather and CI (the clock works without). After ten minutes without a key the pages dim to
+half; from 20:00 to 09:00 on weekdays and all weekend the TV goes to sleep instead and stays asleep
+until someone presses the remote's power key (the launcher cannot wake the TV: Xiaomi's power service
+only accepts the power key). Put a read-only GitLab token in `gitlab_token` before pushing the theme,
+and change the coordinates and times to your office. The design and the device checks are in
+`docs/superpowers/specs/2026-10-22-home-pager-design.md` and
+`docs/superpowers/specs/2026-10-22-screen-schedule-design.md`.
 
 ## Adding a theme
 
