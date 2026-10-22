@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The weather page (WeatherPageView): the current conditions large, the next hours and three day cards,
+     or a waiting line until the first weather arrives. Mockup: designs/home-pager/P2 天气页.html. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/wxWaiting"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/weather_waiting"
+        android:textColor="#8CFFFFFF"
+        android:textSize="20sp"
+        android:fontFamily="@font/outfit_light" />
+
+    <LinearLayout
+        android:id="@+id/wxTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="44dp"
+        android:layout_marginStart="24dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/wxNowIcon"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:contentDescription="@null" />
+
+        <TextView
+            android:id="@+id/wxNowTemp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="28dp"
+            android:textColor="#FFFFFFFF"
+            android:textSize="130sp"
+            android:fontFamily="@font/outfit_extralight"
+            android:letterSpacing="-0.04"
+            android:includeFontPadding="false" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="28dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/wxNowCond"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#E6FFFFFF"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/wxNowHiLo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="#8CFFFFFF"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/wxDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="#66FFFFFF"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/wxHours"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:paddingStart="30dp"
+        android:paddingEnd="30dp"
+        android:orientation="horizontal"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/wxDays"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:layout_marginTop="36dp"
+        android:orientation="horizontal"
+        android:visibility="gone" />
+</merge>
