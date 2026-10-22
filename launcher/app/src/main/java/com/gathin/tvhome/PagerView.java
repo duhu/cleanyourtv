@@ -81,11 +81,11 @@ public class PagerView extends FrameLayout {
         return true;
     }
 
-    /** Brings the page at index on screen; nothing happens when it already is, or the index is out of range. */
-    void show(int index, boolean animate) {
-        if (index < 0 || index >= pages.size()) return;
+    /** Brings the page at index on screen; false when it already is, or the index is out of range. */
+    boolean show(int index, boolean animate) {
+        if (index < 0 || index >= pages.size()) return false;
         if (sliding) finishSlide();
-        if (index == current) return;
+        if (index == current) return false;
         View from = current >= 0 ? pages.get(current) : null;
         View to = pages.get(index);
         int dir = index > current ? 1 : -1;
@@ -96,7 +96,7 @@ public class PagerView extends FrameLayout {
             to.setTranslationX(0f);
             to.setVisibility(VISIBLE);
             if (listener != null) listener.onPage(index);
-            return;
+            return true;
         }
         sliding = true;
         to.setTranslationX(dir * width);
@@ -112,6 +112,7 @@ public class PagerView extends FrameLayout {
                     from.setVisibility(INVISIBLE);
                     from.setTranslationX(0f);
                 }).start();
+        return true;
     }
 
     /** Jumps both pages to where the running slide was heading. */

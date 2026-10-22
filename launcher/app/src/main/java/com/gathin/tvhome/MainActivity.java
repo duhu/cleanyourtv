@@ -155,15 +155,25 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private PopupWindow openPopup;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    /** Meeting-room standby screen (config.xml standby). Every call goes through StandbyFeature.run. */
-    private StandbyView standby;
-    private StandbyConfig standbyConfig;
+    /**
+     * The home pages (config.xml pages; docs/superpowers/specs/2026-10-22-home-pager-design.md): the apps
+     * page is the launcher itself, the clock and weather pages sit beside it. Every call into the pager,
+     * the pages and the feed goes through StandbyFeature.run, so a failure there never takes Home down.
+     */
+    private PagesConfig pagesConfig;
+    private PagerView pager;
+    private View appsPage;
+    private ClockPageView clockPage;
+    private WeatherPageView weatherPage;
+    private HdmiToastView toast;
     private StandbyFeed standbyFeed;
-    /** The same feed on Home: the weather band (config.xml home_weather) and the status bar (home_status_bar). */
-    private HomeWeatherView homeWeather;
-    private LinearLayout homeBar;
-    private boolean homeWeatherOn, homeBarOn;
-    private StandbyData.StandbySnapshot homeSnapshot = StandbyData.StandbySnapshot.EMPTY;
+    private StandbyData.StandbySnapshot snapshot = StandbyData.StandbySnapshot.EMPTY;
+    /** The status bar under the pages (config.xml status_bar) with the page dots at its right end. */
+    private LinearLayout homeBar, statusCells, pageDots;
+    /** Idle on another page for page_return_seconds: back to the default page. */
+    private final Runnable returnToDefault = () -> StandbyFeature.run(() -> {
+        pager.show(pagesConfig.defaultIndex, true);
+    });
     /** HDMI auto-switch (config.xml hdmi_auto_switch); fed by inputCallback. */
     private InputWatcher inputWatcher = new InputWatcher(false);
     /** Quick-switch tiles for plugged-in HDMI ports (config.xml hdmi_tiles); focus lands on the first one. */
@@ -229,8 +239,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             updateWifiLabel();
             sky.update();
             StandbyFeature.run(() -> {
-                homeWeather.tick();
-                renderHomeBar();
+                if (pager.showing(weatherPage)) weatherPage.tick();
+                renderBar();
             });
             handler.postDelayed(this, MINUTE_MS);
         }
@@ -266,30 +276,16 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (cfg.wallpaper != null) showWallpaper(cfg.wallpaper);
         sky = findViewById(R.id.sky);
         sky.setIntensity(cfg.skyIntensity);
-        standbyConfig = cfg.standby;
-        standby = findViewById(R.id.standby);
-        StandbyFeature.run(() -> {
-            standby.configure(standbyConfig, animations && !reducedMotion);
-        });
-        homeWeatherOn = cfg.homeWeather;
-        homeBarOn = cfg.homeStatusBar;
-        homeWeather = findViewById(R.id.homeWeather);
+        pagesConfig = cfg.pages;
+        pager = findViewById(R.id.pager);
+        appsPage = findViewById(R.id.appsPage);
+        clockPage = findViewById(R.id.clockPage);
+        weatherPage = findViewById(R.id.weatherPage);
+        toast = findViewById(R.id.toast);
         homeBar = findViewById(R.id.homeBar);
-        homeBar.setVisibility(homeBarOn ? View.VISIBLE : View.GONE);
-        StandbyFeature.run(() -> {
-            homeWeather.configure(homeWeatherOn);
-        });
-        if ((standbyConfig.enabled || homeWeatherOn || homeBarOn) && standbyConfig.hasSources()) {
-            standbyFeed = new StandbyFeed(standbyConfig, handler, snapshot -> StandbyFeature.run(() -> {
-                standby.render(snapshot);
-                homeWeather.render(snapshot);
-                homeSnapshot = snapshot;
-                renderHomeBar();
-            }));
-            StandbyFeature.run(() -> {
-                standbyFeed.start();
-            });
-        }
+        statusCells = homeBar.findViewById(R.id.statusCells);
+        pageDots = homeBar.findViewById(R.id.pageDots);
+        setUpPages();
         glass = findViewById(R.id.glass);
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
@@ -443,8 +439,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             int firstButton = btnInputs.getVisibility() == View.VISIBLE ? R.id.btnInputs : R.id.btnWifi;
             int leftButton = rtlMenuBar ? R.id.btnSettings : firstButton;
             int rightButton = rtlMenuBar ? firstButton : R.id.btnSettings;
-            if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) return v.getId() == leftButton;
-            return keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && v.getId() == rightButton;
+            boolean atEnd = (keyCode == KeyEvent.KEYCODE_DPAD_LEFT && v.getId() == leftButton)
+                    || (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && v.getId() == rightButton);
+            // At the bar's ends the key flips to the neighbouring page, if there is one.
+            if (atEnd) StandbyFeature.run(() -> { pager.move(keyCode == KeyEvent.KEYCODE_DPAD_LEFT ? -1 : 1); });
+            return atEnd;
         };
         btnInputs.setOnKeyListener(pillKeys);
         btnWifi.setOnKeyListener(pillKeys);
@@ -483,8 +482,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         ConnectivityManager cm = getSystemService(ConnectivityManager.class);
         TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
         if (tim != null) tim.registerCallback(inputCallback, handler);
-        inputWatcher = new InputWatcher(standbyConfig.hdmiAutoSwitch);
-        if (tim != null && standbyConfig.hdmiAutoSwitch) {
+        inputWatcher = new InputWatcher(pagesConfig.hdmiAutoSwitch);
+        if (tim != null && pagesConfig.hdmiAutoSwitch) {
             StandbyFeature.run(() -> {
                 for (TvInputInfo info : tim.getTvInputList()) {
                     if (info.isPassthroughInput() && info.getType() == TvInputInfo.TYPE_HDMI) {
@@ -594,8 +593,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         updateInputsButton();
         sky.update();
         handler.postDelayed(minuteTick, MINUTE_MS);
+        // Back from an app, or Home pressed: the page the TV rests on, at once.
         StandbyFeature.run(() -> {
-            standby.touch();
+            // The page did not change (Home was already resting): the clock still has to start ticking again.
+            if (!pager.show(pagesConfig.defaultIndex, false)) onPage(pager.current());
         });
         if (festive && diya != null) {
             diya.start();
@@ -686,8 +687,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         heroName.animate().cancel();
         ambient.animate().cancel();
         handler.removeCallbacks(minuteTick);
+        handler.removeCallbacks(returnToDefault);
         StandbyFeature.run(() -> {
-            standby.cancel();
+            clockPage.setShown(false);
         });
         if (diya != null) diya.stop();
         // Nothing of ours stays on screen over another app; an undecided prompt simply returns next time.
@@ -708,8 +710,71 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (hasFocus) showCardPrompt();
     }
 
-    private void renderHomeBar() {
-        if (homeBarOn) StatusCells.fill(homeBar, homeSnapshot.ci, density);
+    // ---- pages -----------------------------------------------------------------------------------
+
+    /** The page views in the theme's order inside the pager, the bar and the dots, and the feed behind them. */
+    private void setUpPages() {
+        boolean bar = pagesConfig.statusBar;
+        homeBar.setVisibility(bar || pagesConfig.multiPage() ? View.VISIBLE : View.GONE);
+        statusCells.setVisibility(bar ? View.VISIBLE : View.GONE);
+        if (!bar) homeBar.setBackground(null);
+        StandbyFeature.run(() -> {
+            List<View> views = new ArrayList<>();
+            for (String name : pagesConfig.pages) {
+                switch (name) {
+                    case PagesConfig.PAGE_CLOCK: views.add(clockPage); break;
+                    case PagesConfig.PAGE_WEATHER: views.add(weatherPage); break;
+                    default: views.add(appsPage);
+                }
+            }
+            clockPage.configure(pagesConfig.flipClock, animations && !reducedMotion);
+            pager.setListener(this::onPage);
+            pager.setPages(views, pagesConfig.defaultIndex, animations && !reducedMotion);
+        });
+        if (pagesConfig.needsFeed() && pagesConfig.hasSources()) {
+            standbyFeed = new StandbyFeed(pagesConfig, handler, s -> StandbyFeature.run(() -> {
+                snapshot = s;
+                clockPage.render(s);
+                weatherPage.render(s);
+                renderBar();
+            }));
+            StandbyFeature.run(() -> {
+                standbyFeed.start();
+            });
+        }
+    }
+
+    private boolean onAppsPage() {
+        return pager.showing(appsPage);
+    }
+
+    /** A page came on screen: the dots, the clock's ticking, the weather's "now", and focus on the apps page. */
+    private void onPage(int index) {
+        View page = pager.page(index);
+        StatusCells.dots(pageDots, pager.count(), index, density);
+        clockPage.setShown(page == clockPage);
+        if (page == weatherPage) weatherPage.tick();
+        if (page == appsPage) {
+            restoreFocus();
+        } else {
+            hideGlass();
+            hideHero();
+            ambient.animate().cancel();
+            ambient.setAlpha(0f);
+        }
+        restartReturnTimer();
+    }
+
+    /** Any key press: the way back to the default page starts over, when there is one to go back to. */
+    private void restartReturnTimer() {
+        handler.removeCallbacks(returnToDefault);
+        if (pagesConfig.returnSeconds > 0 && pager.current() != pagesConfig.defaultIndex) {
+            handler.postDelayed(returnToDefault, pagesConfig.returnSeconds * 1000L);
+        }
+    }
+
+    private void renderBar() {
+        if (pagesConfig.statusBar) StatusCells.fill(statusCells, snapshot.ci, density);
     }
 
     @Override
@@ -730,22 +795,29 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // Home screen: Back goes nowhere.
     }
 
-    /** The standby screen takes the key that wakes Home; any other key restarts its idle clock. */
+    /** On the clock and weather pages the remote flips pages (PageKeys); on the apps page it drives focus as ever. */
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        boolean consumed = StandbyFeature.run(() -> standby.consumeKey(event), false);
-        if (consumed) return true;
-        StandbyFeature.run(() -> {
-            standby.touch();
-        });
-        return super.dispatchKeyEvent(event);
+        PageKeys.Action action = StandbyFeature.run(() -> {
+            PageKeys.Action a = PageKeys.onKey(event.getKeyCode(), event.getAction(), event.getRepeatCount(), onAppsPage());
+            restartReturnTimer();
+            return a;
+        }, PageKeys.Action.PASS);
+        switch (action) {
+            case PREV: StandbyFeature.run(() -> { pager.move(-1); }); return true;
+            case NEXT: StandbyFeature.run(() -> { pager.move(1); }); return true;
+            case APPS: StandbyFeature.run(() -> { pager.show(pagesConfig.indexOf(PagesConfig.PAGE_APPS), true); }); return true;
+            case DEFAULT: StandbyFeature.run(() -> { pager.show(pagesConfig.defaultIndex, true); }); return true;
+            case CONSUME: return true;
+            default: return super.dispatchKeyEvent(event);
+        }
     }
 
     @Override
     public void onUserInteraction() {
         super.onUserInteraction();
         StandbyFeature.run(() -> {
-            standby.touch();
+            restartReturnTimer();
         });
     }
 
@@ -966,8 +1038,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
             // In the dock, the last app is the row's end: the empty slots after it take no focus.
             int rowCount = position < COLUMNS ? Math.min(count, adapter.dockFilled()) : count;
-            return GridNavigation.atHorizontalEdge(position, rowCount, COLUMNS,
-                    rtlAppGrid, keyCode == KeyEvent.KEYCODE_DPAD_LEFT);
+            boolean left = keyCode == KeyEvent.KEYCODE_DPAD_LEFT;
+            if (!GridNavigation.atHorizontalEdge(position, rowCount, COLUMNS, rtlAppGrid, left)) return false;
+            // At the row's end the key flips to the neighbouring page, if there is one.
+            StandbyFeature.run(() -> { pager.move(left ? -1 : 1); });
+            return true;
         }
         if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
             if (position < COLUMNS) return false;          // dock row: let focus move to the top bar
@@ -1295,7 +1370,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (action.kind == InputWatcher.Kind.SWITCH) {
             String label = HdmiTiles.label(info.loadLabel(this));
             Log.d(StandbyFeature.TAG, "switching to " + action.inputId + " (" + label + ")");
-            standby.showHdmiToast(label, () -> StandbyFeature.run(() -> {
+            toast.show(label, () -> StandbyFeature.run(() -> {
                 if (!openInputChecked(action.inputId)) inputWatcher.switchFailed();
             }));
         } else if (action.kind == InputWatcher.Kind.HOME) {
