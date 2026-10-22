@@ -1,7 +1,7 @@
 {
-  "dock_apps": ["com.xiaomi.mitv.smartshare"],
+  "dock_apps": ["com.tcly.sharescreen"],
   "fill_dock": false,
-  "only_apps": ["com.xiaomi.mitv.smartshare"],
+  "only_apps": ["com.tcly.sharescreen"],
   "hidden_apps": ["com.mitv.tvhome", "com.mitv.gallery"],
   "extra_apps": ["com.xiaomi.mitv.tvplayer/.ExternalSourceActivity", "com.xiaomi.mitv.appstore/.MainActivity", "com.xiaomi.mitv.mediaexplorer/.NewScraperMainEntryActivity"],
   "show_greeting": false,
