@@ -114,8 +114,10 @@ detected, switching…" for a moment and switches to it; unplugging comes back. 
 for the weather and CI (the clock works without). After ten minutes without a key the pages dim to
 half; from 20:00 to 09:00 on weekdays and all weekend the TV goes to sleep instead and stays asleep
 until someone presses the remote's power key (the launcher cannot wake the TV: Xiaomi's power service
-only accepts the power key). Put a read-only GitLab token in `gitlab_token` before pushing the theme,
-and change the coordinates and times to your office. The design and the device checks are in
+only accepts the power key). The wallpaper is a dusk mountain range (Unsplash photo 17_tB-oI0ao,
+Unsplash License) darkened so the white clock and the status bar stay readable. Put a read-only
+GitLab token in `gitlab_token` before pushing the theme, and change the coordinates and times to your
+office. The design and the device checks are in
 `docs/superpowers/specs/2026-10-22-home-pager-design.md` and
 `docs/superpowers/specs/2026-10-22-screen-schedule-design.md`.
 

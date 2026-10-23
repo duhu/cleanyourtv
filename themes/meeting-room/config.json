@@ -12,6 +12,7 @@
   "page_return_seconds": 600,
   "flip_clock": true,
   "status_bar": true,
+  "wallpaper": true,
   "idle_seconds": 600,
   "dim_percent": 50,
   "sleep_time": "20:00",
