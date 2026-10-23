@@ -239,6 +239,13 @@
             android:layout_height="match_parent"
             android:visibility="gone"
             android:importantForAccessibility="no" />
+
+        <com.gathin.tvhome.GitPageView
+            android:id="@+id/gitPage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:importantForAccessibility="no" />
         </com.gathin.tvhome.PagerView>
 
         <!-- The status bar (config.xml status_bar) and the page dots; hidden in code when neither applies. -->

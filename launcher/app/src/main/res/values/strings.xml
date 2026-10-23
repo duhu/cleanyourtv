@@ -68,6 +68,18 @@
     <!-- Home pages: the clock page, the weather page, the status bar and the HDMI toast -->
     <string name="pages_hint">‹ › Pages</string>
     <string name="weather_waiting">Waiting for weather…</string>
+    <!-- The git page: the 30-day commit panorama -->
+    <string name="git_waiting">Waiting for repositories…</string>
+    <string name="git_none">No repositories found</string>
+    <string name="git_total_unit">commits · last 30 days</string>
+    <string name="git_sub">%1$d active · this week %2$d · last week %3$d</string>
+    <string name="git_chart_caption">Commits per day · all repositories</string>
+    <string name="git_updated">updated %1$s</string>
+    <string name="git_today">today</string>
+    <string name="git_commits_unit">commits</string>
+    <string name="git_ci_ok" translatable="false">CI ✓</string>
+    <string name="git_ci_failed" translatable="false">CI ✗</string>
+    <string name="git_ci_running" translatable="false">CI …</string>
     <string name="standby_date_pattern">MMMM d</string>
     <string name="standby_weekday_pattern" translatable="false">EEEE</string>
     <string name="standby_hdmi_hint">Plug in HDMI to share</string>

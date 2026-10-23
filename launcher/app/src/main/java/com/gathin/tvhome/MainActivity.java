@@ -159,7 +159,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private final Handler handler = new Handler(Looper.getMainLooper());
     /**
      * The home pages (config.xml pages; docs/superpowers/specs/2026-10-22-home-pager-design.md): the apps
-     * page is the launcher itself, the clock and weather pages sit beside it. Every call into the pager,
+     * page is the launcher itself, the clock, weather and git pages sit beside it. Every call into the pager,
      * the pages and the feed goes through StandbyFeature.run, so a failure there never takes Home down.
      */
     private PagesConfig pagesConfig;
@@ -167,6 +167,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private View appsPage;
     private ClockPageView clockPage;
     private WeatherPageView weatherPage;
+    private GitPageView gitPage;
     private HdmiToastView toast;
     private StandbyFeed standbyFeed;
     private StandbyData.StandbySnapshot snapshot = StandbyData.StandbySnapshot.EMPTY;
@@ -253,6 +254,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             sky.update();
             StandbyFeature.run(() -> {
                 if (pager.showing(weatherPage)) weatherPage.tick();
+                if (pager.showing(gitPage)) gitPage.tick();
                 renderBar();
                 checkIdle();
             });
@@ -296,6 +298,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         appsPage = findViewById(R.id.appsPage);
         clockPage = findViewById(R.id.clockPage);
         weatherPage = findViewById(R.id.weatherPage);
+        gitPage = findViewById(R.id.gitPage);
         toast = findViewById(R.id.toast);
         dimLayer = findViewById(R.id.dimLayer);
         homeBar = findViewById(R.id.homeBar);
@@ -744,6 +747,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 switch (name) {
                     case PagesConfig.PAGE_CLOCK: views.add(clockPage); break;
                     case PagesConfig.PAGE_WEATHER: views.add(weatherPage); break;
+                    case PagesConfig.PAGE_GIT: views.add(gitPage); break;
                     default: views.add(appsPage);
                 }
             }
@@ -756,6 +760,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 snapshot = s;
                 clockPage.render(s);
                 weatherPage.render(s);
+                gitPage.render(s.git);
                 renderBar();
             }));
             StandbyFeature.run(() -> {
@@ -774,6 +779,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         StatusCells.dots(pageDots, pager.count(), index, density);
         clockPage.setShown(page == clockPage);
         if (page == weatherPage) weatherPage.tick();
+        if (page == gitPage) gitPage.tick();
         if (page == appsPage) {
             restoreFocus();
         } else {

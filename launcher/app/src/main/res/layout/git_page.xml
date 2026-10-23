@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The git page (GitPageView): the 30-day commit total and sub line top-left, the daily chart top-right,
+     then two rows of repository cards built in code, or a waiting line until the first snapshot.
+     Mockup: designs/git-board/A 仓库卡片墙.html; spec docs/superpowers/specs/2026-10-23-git-page-design.md. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/gitWaiting"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/git_waiting"
+        android:textColor="#8CFFFFFF"
+        android:textSize="20sp"
+        android:fontFamily="@font/outfit_light" />
+
+    <LinearLayout
+        android:id="@+id/gitHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="bottom">
+
+            <TextView
+                android:id="@+id/gitTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFFFF"
+                android:textSize="75sp"
+                android:fontFamily="@font/outfit_extralight"
+                android:letterSpacing="-0.04"
+                android:includeFontPadding="false" />
+
+            <TextView
+                android:id="@+id/gitTotalUnit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="13dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/git_total_unit"
+                android:textColor="#B3FFFFFF"
+                android:textSize="17sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/gitSub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="#8CFFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/gitTrend"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="22dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/git_chart_caption"
+                android:textColor="#8CFFFFFF"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/gitUpdated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#8CFFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <com.gathin.tvhome.BarChartView
+            android:id="@+id/gitChart"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:layout_marginTop="7dp" />
+
+        <LinearLayout
+            android:id="@+id/gitAxis"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/gitRows"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="139dp"
+        android:orientation="vertical"
+        android:visibility="gone" />
+</merge>

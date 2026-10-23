@@ -7,7 +7,7 @@
   "show_greeting": false,
   "tile_style": "capsule",
   "dim_top_buttons": true,
-  "pages": ["apps", "clock", "weather"],
+  "pages": ["apps", "clock", "weather", "git"],
   "default_page": "clock",
   "page_return_seconds": 600,
   "flip_clock": true,
@@ -21,7 +21,6 @@
   "weather_lon": 120.58,
   "gitlab_url": "https://git.17usoft.com",
   "gitlab_token": "REPLACE_ME",
-  "gitlab_projects": ["team/placeholder-one", "team/placeholder-two"],
   "hdmi_auto_switch": true,
   "hdmi_tiles": true
 }

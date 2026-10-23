@@ -23,7 +23,7 @@ final class GitData {
     /** The window of days, today last. */
     static final int DAYS = 30;
     /** Projects measured per round (the most recently active), repositories shown, pages of commits per project. */
-    static final int CANDIDATES = 12, SHOWN = 8, MAX_PAGES = 3, PAGE = 100;
+    static final int CANDIDATES = 12, SHOWN = 8, MAX_PAGES = 5, PAGE = 100;
     /** Commits in the last 7 days that make a repository hot. */
     static final int HOT_WEEK = 10;
     private static final int WEEK = 7;

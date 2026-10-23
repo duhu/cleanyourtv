@@ -10,6 +10,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -17,15 +18,17 @@ import java.util.Locale;
 /**
  * Fetches what the standby screen shows, on one background thread, at a fixed cadence: the feed JSON
  * every minute when feed_url is set, otherwise Open-Meteo every 30 minutes and each GitLab project's
- * latest pipeline every 5 minutes. A failed fetch keeps the previous value and waits for the next
- * turn; there are no retries in between. Results reach the listener on the main thread.
+ * latest pipeline every 5 minutes; for the git page, the token's most recently active projects and
+ * their 30 days of commits every 10 minutes. A failed fetch keeps the previous value and waits for
+ * the next turn; there are no retries in between. Results reach the listener on the main thread.
  */
 final class StandbyFeed {
     interface Listener {
         void onSnapshot(StandbyData.StandbySnapshot snapshot);
     }
 
-    static final long FEED_MS = 60_000L, GITLAB_MS = 5 * 60_000L, WEATHER_MS = 30 * 60_000L;
+    static final long FEED_MS = 60_000L, GITLAB_MS = 5 * 60_000L, WEATHER_MS = 30 * 60_000L, GIT_MS = 10 * 60_000L;
+    private static final String PROJECTS_QUERY = "/api/v4/projects?membership=true&simple=true&archived=false&order_by=last_activity_at&sort=desc&per_page=50";
     private static final int TIMEOUT_MS = 10_000, MAX_BYTES = 256 * 1024;
 
     private final PagesConfig cfg;
@@ -36,6 +39,7 @@ final class StandbyFeed {
     private StandbyData.WeatherInfo weather;
     private StandbyData.Forecast forecast;
     private List<StandbyData.CiInfo> ci = new ArrayList<>();
+    private GitData.Snapshot git;
 
     private final Runnable fetchFeed = new Runnable() {
         @Override
@@ -63,7 +67,7 @@ final class StandbyFeed {
                 weather = w;
                 StandbyData.Forecast f = StandbyData.parseOpenMeteoForecast(body);
                 if (f != null) forecast = f;
-                publish(new StandbyData.StandbySnapshot(weather, ci, forecast));
+                publish(new StandbyData.StandbySnapshot(weather, ci, forecast, git));
             } else {
                 Log.w(StandbyFeature.TAG, "weather not updated");
             }
@@ -95,8 +99,66 @@ final class StandbyFeed {
             }
             if (anyFailed) Log.w(StandbyFeature.TAG, "gitlab: some projects not updated");
             ci = fresh;
-            publish(new StandbyData.StandbySnapshot(weather, ci, forecast));
+            publish(new StandbyData.StandbySnapshot(weather, ci, forecast, git));
             worker.postDelayed(this, GITLAB_MS);
+        }
+    };
+
+    /**
+     * The git page: the token's most recently active projects, the 30 days of commits of the first
+     * CANDIDATES of them (all branches, paged), then the latest pipeline of the SHOWN most active. A
+     * failed project list keeps the previous snapshot; a project whose first page fails is left out of
+     * this round; a failed pipeline call leaves that card without CI. With no gitlab_projects, the
+     * status bar's cells come from the same snapshot.
+     */
+    private final Runnable fetchGit = new Runnable() {
+        @Override
+        public void run() {
+            long now = System.currentTimeMillis();
+            String base = cfg.gitlabUrl + "/api/v4";
+            List<GitData.Project> projects = GitData.parseProjects(get(cfg.gitlabUrl + PROJECTS_QUERY, cfg.gitlabToken), cfg.gitlabGroups);
+            if (projects == null) {
+                Log.w(StandbyFeature.TAG, "git: projects not updated");
+            } else {
+                String since = GitData.since(now);
+                ZoneId zone = ZoneId.systemDefault();
+                List<GitData.Repo> repos = new ArrayList<>();
+                for (GitData.Project p : projects) {
+                    if (repos.size() >= GitData.CANDIDATES) break;
+                    List<GitData.Commit> all = new ArrayList<>();
+                    boolean counted = true;
+                    for (int page = 1; page <= GitData.MAX_PAGES; page++) {
+                        String url = base + "/projects/" + p.id + "/repository/commits?all=true&since=" + since
+                                + "&per_page=" + GitData.PAGE + "&page=" + page;
+                        List<GitData.Commit> c = GitData.parseCommits(get(url, cfg.gitlabToken));
+                        if (c == null) {
+                            counted = page > 1;   // a later page lost: keep what came before
+                            break;
+                        }
+                        all.addAll(c);
+                        if (c.size() < GitData.PAGE) break;
+                    }
+                    if (!counted) {
+                        Log.w(StandbyFeature.TAG, "git: " + p.path + " not counted");
+                        continue;
+                    }
+                    repos.add(GitData.repo(p, all, now, zone));
+                }
+                List<GitData.Repo> shown = new ArrayList<>();
+                for (GitData.Repo r : new GitData.Snapshot(repos, now).repos) {
+                    StandbyData.CiInfo info = null;
+                    try {
+                        info = StandbyData.parseGitlabPipelines(r.name,
+                                get(base + "/projects/" + URLEncoder.encode(r.path, "UTF-8") + "/pipelines?per_page=1", cfg.gitlabToken));
+                    } catch (Exception ignored) {
+                    }
+                    shown.add(info == null ? r : r.withCi(info));
+                }
+                git = new GitData.Snapshot(shown, now);
+                if (!cfg.hasProjects()) ci = git.statusCells();
+                publish(new StandbyData.StandbySnapshot(weather, ci, forecast, git));
+            }
+            worker.postDelayed(this, GIT_MS);
         }
     };
 
@@ -116,8 +178,9 @@ final class StandbyFeed {
             worker.post(fetchFeed);
         } else {
             if (cfg.hasWeather()) worker.post(fetchWeather);
-            if (cfg.hasGitlab()) worker.post(fetchGitlab);
+            if (cfg.hasGitlab() && cfg.hasProjects()) worker.post(fetchGitlab);
         }
+        if (cfg.hasGitlab() && cfg.has(PagesConfig.PAGE_GIT)) worker.post(fetchGit);
     }
 
     void stop() {

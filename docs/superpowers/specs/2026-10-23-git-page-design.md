@@ -36,12 +36,12 @@ commits of the last 30 days on every branch. No WeVantage, no collector, nothing
 |---|---|
 | Page name | `git`, accepted by `PagesConfig` like `clock` and `weather`, and dropped like `weather` without coordinates when `gitlab_url` or `gitlab_token` is missing. The meeting-room theme uses `["apps", "clock", "weather", "git"]` |
 | Which repositories | Discovery, not a list: the first page (50) of the token's member projects by last activity, optionally kept to the `gitlab_groups` prefixes (a new theme key, a list of namespace paths such as `we-project`; empty means every group). The first `GitData.CANDIDATES` (12) of those are measured; the page shows the `GitData.SHOWN` (8) with the most commits in 30 days |
-| Counting | Per project, `repository/commits?all=true&since=<now − 30 days>` paged by 100 up to `GitData.MAX_PAGES` (3); each commit goes into the local day of its `committed_date`; the first commit of the first page is the last commit (`author_name`, `title`, `committed_date`). More than 300 commits in a month is shown as 300 |
+| Counting | Per project, `repository/commits?all=true&since=<now − 30 days>` paged by 100 up to `GitData.MAX_PAGES` (5); each commit goes into the local day of its `committed_date`; the newest commit is the last commit (`author_name`, `title`, `committed_date`). More than 500 commits in a month is shown as 500 (the oldest days lose their share) |
 | Pipelines | The latest pipeline of each shown repository (eight calls), the same parser as the status bar |
 | Status bar | When `gitlab_projects` is empty, the CI cells are the three most active shown repositories that have a pipeline (status not UNKNOWN); when none has one, the three most active anyway. A non-empty `gitlab_projects` keeps today's behaviour and the git page ignores it. The meeting-room theme drops its placeholder `gitlab_projects` |
-| Cadence | `StandbyFeed.GIT_MS` = 10 minutes: at most 1 + 12 × 3 + 8 = 45 small GETs on the intranet, sequential on the feed's worker thread. A failed discovery keeps the previous snapshot; a failed commits call drops that project from this round; a failed pipeline call gives UNKNOWN. The first fetch runs at Home start like the others |
+| Cadence | `StandbyFeed.GIT_MS` = 10 minutes: at most 1 + 12 × 5 + 8 = 69 small GETs on the intranet, sequential on the feed's worker thread. A failed discovery keeps the previous snapshot; a failed commits call drops that project from this round; a failed pipeline call gives UNKNOWN. The first fetch runs at Home start like the others |
 | Header | Top-left: the 30-day total of the shown repositories, 75sp extralight, then "次提交 · 近 30 天". Under it: "N 个活跃仓库 · 本周 X · 上周 Y". Top-right: the daily chart, 350×65dp, caption "每日提交 · 全部仓库" on the left and "更新于 12 分钟前" (the snapshot's age) on the right, five date labels under it (the first day, then every 7 days, "今天" last) |
-| Cards | At most eight, four per row, sorted by 30-day commits descending, ties by path. A card: tier dot and name (16sp medium, one line, ellipsised), the 30-day count (17sp light, "提交" 10sp beside it) at the right; the namespace under the name (10sp, 40 % white); a 28dp sparkline of the same 30 days; a footer line: author · age, the title ellipsised, the pipeline word ("CI ✓" green, "CI ✗" red, "CI …" amber, nothing when unknown). Fewer than five repositories make one row |
+| Cards | At most eight, four per row, sorted by 30-day commits descending, ties by path. A card: tier dot and name (16sp medium, one line, ellipsised); under it the namespace (10sp, 40 % white) on the left and the 30-day count (17sp light, "提交" 10sp beside it) on the right, so a long name keeps the whole first line; a 26dp sparkline of the same 30 days; a footer line: author · age, the title ellipsised, the pipeline word ("CI ✓" green, "CI ✗" red, "CI …" amber, nothing when unknown). Fewer than five repositories make one row |
 | Tiers | From the last 7 days only. hot: 10 commits or more (green dot); warm: 1 to 9 (amber); cold: none this week (dim dot and the whole card at 55 % alpha) |
 | Charts | One `BarChartView` draws the big chart and the sparklines: bars with a gap, heights relative to the largest value, at least 2dp; weekend days at 20 % white, weekdays 42 %, today white. Which days are weekends comes from the snapshot's instant |
 | Ages | "12 分钟前", "2 小时前", "3 天前" through `StandbyData.age` and `StatusCells.ageText`; refreshed when the page comes on screen and on the minute tick, like the weather page |
@@ -62,8 +62,8 @@ place at the bottom (`activity_main.xml`); the page is the area above it.
   (7dp gap); labels 11sp at 40 % white below (6dp gap).
 - Cards: top 165dp, four columns, 12dp gaps, each 124dp high, `glass_panel` background, padding 15dp
   horizontal, 12dp top, 11dp bottom. Row 2 under row 1 with the same gap; nothing scrolls.
-- Inside a card: header row (dot 7dp, name, count); namespace line 1dp under; sparkline 8dp under it,
-  28dp high; the footer pinned to the bottom, 11.5sp at 70 % white for the author, 55 % for the title.
+- Inside a card: header row (dot 7dp, name); the namespace and count line 1dp under; sparkline 6dp under it,
+  26dp high; the footer pinned to the bottom, 11.5sp at 70 % white for the author, 55 % for the title.
 
 ## Components
 
@@ -71,7 +71,7 @@ place at the bottom (`activity_main.xml`); the page is the area above it.
 
 ```java
 final class GitData {
-    static final int DAYS = 30, CANDIDATES = 12, SHOWN = 8, MAX_PAGES = 3, PAGE = 100;
+    static final int DAYS = 30, CANDIDATES = 12, SHOWN = 8, MAX_PAGES = 5, PAGE = 100;
     enum Tier { HOT, WARM, COLD }
 
     static final class Project { final long id; final String path; /* "group/sub/name" */ }

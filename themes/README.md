@@ -18,7 +18,7 @@ powershell -ExecutionPolicy Bypass -File tools\theme.ps1 -TvHost 192.168.1.50 th
 | `aurora/` | A dark aurora wallpaper (teal and violet on navy, darker at the bottom) with a matching background colour |
 | `dussehra/` | Festive skin for Dussehra (ends 21 Oct 2026): a marigold toran, a faint gold rangoli, a diya for Wi-Fi, a bell for Inputs, a marigold for Settings and a petal shower |
 | `six-columns/` | Six smaller tiles per row and one grid row visible under the dock |
-| `meeting-room/` | An office TV used only for HDMI screen sharing: Home is three pages (apps, a flip clock, the weather) flipped with Left/Right and resting on the clock, with a CI status bar and automatic switching to a freshly plugged HDMI port (Redmi A50 2025) |
+| `meeting-room/` | An office TV used only for HDMI screen sharing: Home is four pages (apps, a flip clock, the weather, the team's GitLab repositories) flipped with Left/Right and resting on the clock, with a CI status bar and automatic switching to a freshly plugged HDMI port (Redmi A50 2025) |
 
 ## Keys
 
@@ -61,16 +61,18 @@ over `config.json` when they push, so the committed file keeps `REPLACE_ME`.
 | `accent_color` | `#RRGGBB` | Colour of the focus glow while the festive skin is on; diya gold if not set |
 | `settings_key_keycodes` | list of keycodes | Remote buttons that open Settings, for `HomeKeyService` (TCL Google TV gear: `[83]`) |
 | `settings_key_panel` | bool | Those buttons open a small quick settings panel (TV settings, Display, Network, Apps, Launcher settings) instead of the TV's Settings |
-| `pages` | list of `apps`, `clock`, `weather` | The pages Left and Right flip through, in that order: `apps` is the launcher itself; `clock` a large clock with the date and the current weather; `weather` the current conditions, the next 12 hours and three days (needs `weather_lat`/`weather_lon`). Unknown names are dropped; `["apps"]` (the default) is the plain launcher with no flipping. On the apps page, Left on the leftmost item or Right on the rightmost flips; on the other pages OK jumps to the apps page and Back to the default page |
+| `pages` | list of `apps`, `clock`, `weather`, `git` | The pages Left and Right flip through, in that order: `apps` is the launcher itself; `clock` a large clock with the date and the current weather; `weather` the current conditions, the next 12 hours and three days (needs `weather_lat`/`weather_lon`). Unknown names are dropped; `["apps"]` (the default) is the plain launcher with no flipping. On the apps page, Left on the leftmost item or Right on the rightmost flips; on the other pages OK jumps to the apps page and Back to the default page |
 | `default_page` | string | The page Home opens on, comes back to from another app and returns to after idling; one of `pages`, else the first (`apps` by default) |
 | `page_return_seconds` | 0 to 86400 | Seconds on another page without a key press before `default_page` comes back; 0 never (600 by default) |
 | `flip_clock` | bool | The clock page as split-flap cards: hour and minute cards plus two smaller seconds cards, flipping on every change (true by default); false shows plain thin digits without seconds |
-| `status_bar` | bool | A bar at the bottom of every page: `插线即投屏`, then the latest CI pipeline of each `gitlab_projects` entry. With more than one page the bar's right end shows page dots (they show without the bar too) |
+| `status_bar` | bool | A bar at the bottom of every page: `插线即投屏`, then the latest CI pipeline of each `gitlab_projects` entry (or of the `git` page's most active repositories). With more than one page the bar's right end shows page dots (they show without the bar too) |
 | `idle_seconds` | 0 to 86400 | Seconds without a key press before Home dims, or sleeps inside the window below; 0 never (the default) |
 | `dim_percent` | 0 to 95 | Opacity of the black layer that dims Home after `idle_seconds`; 0 never dims (50 by default). Any key brings the page back; the first press is swallowed unless it is a volume key |
 | `sleep_time`, `wake_time` | `HH:mm` | The sleep window: weekdays from `sleep_time` to `wake_time`, all of Saturday and Sunday. Inside it an idle Home puts the TV to sleep like the power key (needs the device admin that `build-and-install.sh` activates). Nothing wakes the TV: the remote's power key does. Both empty keeps the TV awake |
 | `weather_lat`, `weather_lon` | number | Open-Meteo coordinates for the weather on the clock and weather pages; both needed, no API key |
-| `gitlab_url`, `gitlab_token`, `gitlab_projects` | string, string, list of `group/project` | Latest pipeline of each project in the status bar, fetched every 5 minutes with a read-only (`read_api`) token. The token sits in plain text in the TV's config.json; `REPLACE_ME` keeps the source off |
+| `gitlab_url`, `gitlab_token` | string, string | A self-hosted GitLab and a read-only (`read_api`) token: the `git` page and the status bar's CI cells. The token sits in plain text in the TV's config.json (put it in `config.local.json`, see above); `REPLACE_ME` keeps the source off |
+| `gitlab_projects` | list of `group/project` | Projects for the status bar's CI cells by hand, fetched every 5 minutes. Empty: the cells are the three most active repositories the `git` page finds |
+| `gitlab_groups` | list of namespace paths | Keeps the `git` page to these groups (`"we-project"` also matches `we-project/sub/x`); empty means every project the token is a member of |
 | `feed_url` | string | One JSON with everything instead of the two sources above, fetched every minute: `{"weather":{"temp_c":21,"text":"多云"},"ci":[{"name":"x","status":"success","updated_at":"2026-10-20T06:12:00Z"}]}` |
 | `hdmi_auto_switch` | bool | Plugging a device into an HDMI port switches to it after a short toast; unplugging it brings Home back. Only changes count: a cable already in at boot does nothing |
 | `hdmi_tiles` | bool | A quick-switch tile in the dock row for every HDMI port with a device plugged in (plug icon, port name, green dot); OK on it switches there. Focus lands on it whenever Home shows, so a cable already in at boot is one OK away. The tile comes and goes with the cable |
@@ -108,12 +110,15 @@ the plain background; the default is off (the reference launcher looks exactly a
 
 ## Meeting-room pages
 
-`themes/meeting-room` turns the launcher into an office screen-sharing TV. Home is three pages:
+`themes/meeting-room` turns the launcher into an office screen-sharing TV. Home is four pages:
 the apps page (the casting capsule and HDMI quick-switch tiles), a large flip clock with the date
-and weather, and a weather page with the next hours and three days. Left and Right flip between
+and weather, a weather page with the next hours and three days, and a git page: the 30-day commit
+total and daily chart of the GitLab projects the token can see, with a card per repository (commits,
+a sparkline, who committed last and when, the pipeline), refreshed every ten minutes
+(`docs/superpowers/specs/2026-10-23-git-page-design.md`). Left and Right flip between
 them; the TV rests on the clock and goes back to it ten minutes after the last key press, or as
 soon as you come back from an app. The status bar at the bottom shows `插线即投屏` and the latest CI
-pipeline of each `gitlab_projects` entry. Plugging a laptop into any HDMI port shows "HDMI 2
+pipeline of the three most active repositories. Plugging a laptop into any HDMI port shows "HDMI 2
 detected, switching…" for a moment and switches to it; unplugging comes back. The TV needs a network
 for the weather and CI (the clock works without). After ten minutes without a key the pages dim to
 half; from 20:00 to 09:00 on weekdays and all weekend the TV goes to sleep instead and stays asleep

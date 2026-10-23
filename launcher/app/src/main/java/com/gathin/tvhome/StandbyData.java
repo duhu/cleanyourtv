@@ -103,21 +103,28 @@ final class StandbyData {
         }
     }
 
-    /** Everything the views render; a null weather, null forecast or empty ci list means "nothing known". */
+    /** Everything the views render; a null weather, forecast or git, or an empty ci list, means "nothing known". */
     static final class StandbySnapshot {
         static final StandbySnapshot EMPTY = new StandbySnapshot(null, Collections.emptyList());
         final WeatherInfo weather;
         final List<CiInfo> ci;
         final Forecast forecast;
+        /** The git page's repositories; null until the first discovery. */
+        final GitData.Snapshot git;
 
         StandbySnapshot(WeatherInfo weather, List<CiInfo> ci) {
-            this(weather, ci, null);
+            this(weather, ci, null, null);
         }
 
         StandbySnapshot(WeatherInfo weather, List<CiInfo> ci, Forecast forecast) {
+            this(weather, ci, forecast, null);
+        }
+
+        StandbySnapshot(WeatherInfo weather, List<CiInfo> ci, Forecast forecast, GitData.Snapshot git) {
             this.weather = weather;
             this.ci = Collections.unmodifiableList(new ArrayList<>(ci));
             this.forecast = forecast;
+            this.git = git;
         }
     }
 

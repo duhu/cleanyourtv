@@ -38,6 +38,14 @@
     <!-- 主页各页：时钟页、天气页、状态条和 HDMI 提示 -->
     <string name="pages_hint">‹ › 翻页</string>
     <string name="weather_waiting">等待天气数据…</string>
+    <string name="git_waiting">等待仓库数据…</string>
+    <string name="git_none">没有找到仓库</string>
+    <string name="git_total_unit">次提交 · 近 30 天</string>
+    <string name="git_sub">%1$d 个活跃仓库 · 本周 %2$d · 上周 %3$d</string>
+    <string name="git_chart_caption">每日提交 · 全部仓库</string>
+    <string name="git_updated">更新于 %1$s</string>
+    <string name="git_today">今天</string>
+    <string name="git_commits_unit">提交</string>
     <string name="standby_date_pattern">M月d日</string>
     <string name="standby_hdmi_hint">插线即投屏</string>
     <string name="standby_hdmi_switching">检测到 %1$s，正在切换…</string>
