@@ -35,6 +35,16 @@ if (-not (Test-Path $config)) { throw "no config.json in $Theme" }
 try { Get-Content $config -Raw | ConvertFrom-Json | Out-Null } catch { throw "$config is not valid JSON" }
 
 & $py -I tv.py "mkdir -p $dir" | Out-Null
+# config.local.json (not committed: the GitLab token) is laid over config.json before the push.
+$local = Join-Path $Theme 'config.local.json'
+if (Test-Path $local) {
+    $merged = [System.IO.Path]::GetTempFileName()
+    & $py -I -c 'import json,sys
+base=json.load(open(sys.argv[1])); base.update(json.load(open(sys.argv[2])))
+json.dump(base, open(sys.argv[3],"w"), ensure_ascii=False, indent=2)' $config $local $merged
+    if ($LASTEXITCODE -ne 0) { throw "$local is not valid JSON" }
+    $config = $merged
+}
 & $py -I tv.py --push $config "$dir/config.json"
 $wall = Join-Path $Theme 'wallpaper.jpg'
 if (Test-Path $wall) { & $py -I b64push.py $wall "$dir/wallpaper.jpg" } else { & $py -I tv.py "rm -f $dir/wallpaper.jpg" | Out-Null }

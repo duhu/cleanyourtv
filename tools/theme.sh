@@ -36,8 +36,20 @@ THEME="${THEME_ARG:?usage: theme.sh <theme folder> | --reset}"
 "$PY" -I -c 'import json,sys; json.load(open(sys.argv[1]))' "$THEME/config.json" 2>/dev/null \
   || { echo "$THEME/config.json is not valid JSON" >&2; exit 1; }
 
+# Keys you do not commit (the GitLab token) sit in config.local.json next to config.json; the pushed
+# file is config.json with the local top-level keys laid over it.
+CONFIG="$THEME/config.json"
+if [ -f "$THEME/config.local.json" ]; then
+  CONFIG="$(mktemp)"
+  trap 'rm -f "$CONFIG"' EXIT
+  "$PY" -I -c 'import json,sys
+base=json.load(open(sys.argv[1])); base.update(json.load(open(sys.argv[2])))
+json.dump(base, open(sys.argv[3],"w"), ensure_ascii=False, indent=2)' "$THEME/config.json" "$THEME/config.local.json" "$CONFIG" \
+    || { echo "$THEME/config.local.json is not valid JSON" >&2; exit 1; }
+fi
+
 tv "mkdir -p $DIR" >/dev/null
-tv --push "$THEME/config.json" "$DIR/config.json"
+tv --push "$CONFIG" "$DIR/config.json"
 if [ -f "$THEME/wallpaper.jpg" ]; then
   "$PY" -I b64push.py "$THEME/wallpaper.jpg" "$DIR/wallpaper.jpg"
 else

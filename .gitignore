@@ -8,3 +8,5 @@ launcher/local.properties
 # your own TV's dumps (serial, android_id, device names) stay local
 backup/
 .DS_Store
+# a theme folder's local overlay (tokens) merged by tools/theme.sh, never committed
+themes/*/config.local.json
