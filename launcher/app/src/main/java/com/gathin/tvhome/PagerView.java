@@ -14,7 +14,8 @@ import java.util.List;
  * its children in the layout; {@link #setPages} says which of them take part and in what order.
  * One page is on screen; the others are INVISIBLE (so they take no focus) at translation 0. A move
  * slides the leaving page out and the arriving one in from the other side over {@link #SLIDE_MS},
- * or switches at once without animations.
+ * or switches at once without animations. Moves go round: past the last page comes the first, and
+ * the slide keeps the direction of the key, so Right always brings the new page in from the right.
  */
 public class PagerView extends FrameLayout {
     static final long SLIDE_MS = 350;
@@ -73,22 +74,25 @@ public class PagerView extends FrameLayout {
         return current >= 0 && pages.get(current) == page;
     }
 
-    /** One page to the left (delta -1) or right (+1); false at the ends. */
+    /** One page to the left (delta -1) or right (+1), round the ends; false with fewer than two pages. */
     boolean move(int delta) {
-        int target = current + delta;
-        if (target < 0 || target >= pages.size()) return false;
-        show(target, true);
-        return true;
+        int target = PageKeys.wrap(current, delta, pages.size());
+        if (target < 0) return false;
+        return show(target, true, delta < 0 ? -1 : 1);
     }
 
     /** Brings the page at index on screen; false when it already is, or the index is out of range. */
     boolean show(int index, boolean animate) {
+        return show(index, animate, index > current ? 1 : -1);
+    }
+
+    /** @param dir the side the new page comes in from: 1 from the right, -1 from the left */
+    private boolean show(int index, boolean animate, int dir) {
         if (index < 0 || index >= pages.size()) return false;
         if (sliding) finishSlide();
         if (index == current) return false;
         View from = current >= 0 ? pages.get(current) : null;
         View to = pages.get(index);
-        int dir = index > current ? 1 : -1;
         int width = getWidth();
         current = index;
         if (!animate || !animations || width == 0 || from == null) {

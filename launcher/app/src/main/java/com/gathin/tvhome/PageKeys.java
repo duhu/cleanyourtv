@@ -7,7 +7,8 @@ import android.view.KeyEvent;
  * On the apps page every key keeps its ordinary meaning (focus navigation; the row ends flip pages
  * from MainActivity). On the other pages Left and Right flip, OK jumps to the apps page, Back to the
  * default page, Up and Down do nothing, and everything else (volume, mute, the TV's own keys) passes
- * through untouched. Pure, so the mapping is unit-tested.
+ * through untouched. Flipping wraps: Right on the last page goes to the first and Left on the first
+ * to the last ({@link #wrap}). Pure, so the mapping is unit-tested.
  */
 final class PageKeys {
     enum Action { PASS, CONSUME, PREV, NEXT, APPS, DEFAULT }
@@ -31,6 +32,15 @@ final class PageKeys {
             default:
                 return Action.CONSUME;
         }
+    }
+
+    /**
+     * The page one step to the left (delta -1) or right (+1) of current, going round at the ends; -1 with
+     * fewer than two pages, when there is nowhere to go.
+     */
+    static int wrap(int current, int delta, int count) {
+        if (count < 2 || current < 0) return -1;
+        return ((current + delta) % count + count) % count;
     }
 
     private static boolean ours(int keyCode) {

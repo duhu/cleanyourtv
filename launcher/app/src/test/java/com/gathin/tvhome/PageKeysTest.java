@@ -57,4 +57,21 @@ public class PageKeysTest {
         assertEquals(Action.PASS, down(KeyEvent.KEYCODE_MENU));
         assertEquals(Action.PASS, PageKeys.onKey(KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.ACTION_UP, 0, false));
     }
+
+    @Test
+    public void flippingWrapsAtTheEnds() {
+        assertEquals(1, PageKeys.wrap(0, 1, 4));
+        assertEquals(3, PageKeys.wrap(0, -1, 4));
+        assertEquals(0, PageKeys.wrap(3, 1, 4));
+        assertEquals(2, PageKeys.wrap(3, -1, 4));
+    }
+
+    @Test
+    public void aLonePageNeverFlips() {
+        assertEquals(-1, PageKeys.wrap(0, 1, 1));
+        assertEquals(-1, PageKeys.wrap(0, -1, 1));
+        assertEquals(-1, PageKeys.wrap(-1, 1, 0));
+        assertEquals(1, PageKeys.wrap(0, 1, 2));
+        assertEquals(1, PageKeys.wrap(0, -1, 2));
+    }
 }
