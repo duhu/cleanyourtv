@@ -25,7 +25,7 @@ right caption reads "示例数据" so nobody takes the numbers for real.
 | Data | `GitData.Snapshot`: a list of `Repo` (name, group path, 30 daily commit counts ending today, last commit author, time and message, latest pipeline `CiStatus`) and the instant the numbers were taken. Pure Java, built by `GitData.sample(now)` for now |
 | Header | Top-left: the 30-day total of all repositories, 75sp extralight, then "次提交 · 近 30 天". Under it: "N 个活跃仓库 · 本周 X · 上周 Y". Top-right: the daily chart, 350×65dp, with the caption "每日提交 · 全部仓库" on the left and "示例数据" on the right, and five date labels under it (the first day, then every 7 days, "今天" last) |
 | Cards | At most eight, four per row, sorted by 30-day commits descending. A card: tier dot and name (16sp medium, one line, ellipsised), the 30-day count (17sp light, "提交" 10sp beside it) at the right; the group path under the name (10sp, 40 % white); a 28dp sparkline of the same 30 days; a footer line: author · age, the message ellipsised, the pipeline word ("CI ✓" green, "CI ✗" red, "CI …" blue, nothing when unknown). Fewer than five repositories make one row |
-| Tiers | hot: a commit in the last 7 days (green dot); warm: a commit in the last 30 (amber); cold: none (dim dot and the whole card at 55 % alpha) |
+| Tiers | From the last 7 days only. hot: 10 commits or more (green dot); warm: 1 to 9 (amber); cold: none this week (dim dot and the whole card at 55 % alpha, whatever the month looked like) |
 | Charts | One `BarChartView` draws both the big chart and the sparklines: bars with a gap, heights relative to the largest value, at least 2dp; weekend days at 20 % white, weekdays 42 %, today white. Which days are weekends comes from the snapshot's instant (`GitData.isWeekend(asOf, dayIndex)`) |
 | Ages | "12 分钟前", "2 小时前", "3 天前" through the existing `StandbyData.age` and `StatusCells.ageText`; refreshed when the page comes on screen and on the minute tick, like the weather page |
 | Empty | A snapshot with no repositories shows "等待仓库数据…" centred, like the weather page before its first fetch. The sample is never empty, so this only shows once a real feed exists and has nothing yet |
@@ -65,7 +65,7 @@ final class GitData {
         final StandbyData.CiStatus ci;
         int total();                     // sum of daily
         int last(int days);              // sum of the last n values
-        Tier tier();                     // HOT when last(7) > 0, WARM when total() > 0, else COLD
+        Tier tier();                     // last(7) >= 10 HOT, >= 1 WARM, else COLD
     }
     static final class Snapshot {
         static final Snapshot EMPTY;
@@ -114,7 +114,7 @@ this one too.
 ## Testing
 
 - `GitDataTest`: a `Repo` pads a short series and trims a long one; `total`, `last(7)` and `tier` on
-  hand-made series (hot, warm, cold); `Snapshot` sorts by total then name, `dailyTotals` adds across
+  hand-made series (10 this week hot, 9 warm, 0 this week but 6 last month cold); `Snapshot` sorts by total then name, `dailyTotals` adds across
   repositories, `thisWeek`/`lastWeek` take the right windows; `isWeekend` for a known Friday instant
   (index 29 Friday → false, 28 Thursday → false, 27 Wednesday → false, 24 Sunday → true, 23 Saturday
   → true); `sample` has eight repositories, each with 30 values, five hot, and every age in the past.
