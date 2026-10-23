@@ -1,0 +1,37 @@
+{
+  "type": "design",
+  "designSystems": [],
+  "primaryDesignSystem": null,
+  "assets": {
+    "A 仓库卡片墙": {
+      "versions": [
+        {
+          "path": "A 仓库卡片墙.html",
+          "createdAt": "2026-10-23T01:14:22.044Z",
+          "status": "needs-review",
+          "subtitle": "A 仓库卡片墙：总数 + 30 天趋势 + 8 张仓库卡",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ]
+    },
+    "B 趋势加榜单": {
+      "versions": [
+        {
+          "path": "B 趋势加榜单.html",
+          "createdAt": "2026-10-23T01:14:22.076Z",
+          "status": "needs-review",
+          "subtitle": "B 趋势加榜单：大 30 天柱图 + 仓库榜单",
+          "viewport": {
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ]
+    }
+  },
+  "createdAt": "2026-10-23T01:14:22.048Z",
+  "updatedAt": "2026-10-23T01:14:22.076Z"
+}

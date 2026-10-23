@@ -1,0 +1,13 @@
+/* The Home chrome shared by the three tile mockups: the TV's blue sky, clock and date top-left (no
+   greeting), the three top-right buttons, 2px per dp as in the launcher on this 1080p panel. */
+body { background: radial-gradient(1100px 700px at 62% 42%, #0e3a66 0%, #072442 45%, #020a16 100%); }
+.clockline { position: absolute; left: 112px; top: 72px; display: flex; align-items: flex-end; gap: 28px; }
+.clockline .t { font-family: var(--latin); font-weight: 300; font-size: 104px; line-height: .9; letter-spacing: -.04em; }
+.clockline .ampm { font-family: var(--latin); font-weight: 500; font-size: 30px; color: var(--t70); letter-spacing: .08em; margin-bottom: 16px; }
+.clockline .sep { width: 2px; height: 52px; background: var(--t25); margin-bottom: 12px; }
+.clockline .d { font-size: 34px; color: var(--t90); letter-spacing: .06em; margin-bottom: 14px; }
+.topbtns { position: absolute; right: 112px; top: 118px; display: flex; gap: 36px; }
+.topbtns .pill { height: 80px; padding: 0 44px; font-size: 32px; gap: 22px; background: linear-gradient(rgba(60,60,64,.9), rgba(30,30,34,.95)); }
+.topbtns .ic { width: 34px; height: 34px; border-radius: 8px; background: var(--t90); }
+.hero { position: absolute; left: 140px; top: 520px; font-size: 100px; font-weight: 500; letter-spacing: .02em; }
+.note { position: absolute; left: 112px; bottom: 40px; font-size: 22px; color: var(--t40); }

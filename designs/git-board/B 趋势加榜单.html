@@ -1,0 +1,49 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>B 趋势加榜单</title>
+<link rel="stylesheet" href="base.css"><link rel="stylesheet" href="home.css"><link rel="stylesheet" href="wx.css"><link rel="stylesheet" href="pager.css"><link rel="stylesheet" href="git.css">
+<style>
+  .left { position: absolute; left: 96px; width: 1030px; top: 290px; bottom: 190px; padding: 34px 40px 30px; box-sizing: border-box; display: flex; flex-direction: column; }
+  .left h3, .list h3 { margin: 0 0 18px; font-size: 24px; font-weight: 400; color: var(--t55); letter-spacing: .08em; display: flex; justify-content: space-between; }
+  .left h3 .num, .list h3 .num { color: var(--t40); }
+  .left .chart { flex: 1; gap: 14px; }
+  .left .chart i { border-radius: 6px 6px 3px 3px; }
+  .left .cap { display: flex; gap: 40px; font-size: 25px; color: var(--t55); margin-top: 30px; }
+  .left .cap b { color: var(--t90); font-weight: 400; font-family: var(--latin); }
+  .left .cap .dn { color: var(--warn); }
+  .list { position: absolute; left: 1160px; right: 96px; top: 290px; bottom: 190px; padding: 34px 36px 20px; box-sizing: border-box; display: flex; flex-direction: column; }
+  .rw { display: grid; grid-template-columns: 40px 1fr 150px 90px; align-items: center; gap: 18px; height: 80px; border-top: 1px solid rgba(255,255,255,.08); }
+  .rw:first-child { border-top: 0; }
+  .rw .rk { font-family: var(--latin); font-size: 26px; color: var(--t40); font-weight: 300; }
+  .rw .nm { font-family: var(--latin); font-size: 29px; font-weight: 500; display: flex; align-items: center; gap: 14px; }
+  .rw .nm .tier { width: 12px; height: 12px; }
+  .rw .lt { font-size: 21px; color: var(--t55); margin-top: 4px; }
+  .rw .spark { height: 36px; }
+  .rw .n { font-family: var(--latin); font-size: 30px; font-weight: 300; text-align: right; }
+  .rw.cold { opacity: .55; }
+</style></head><body>
+  <div class="title"><span class="big num" id="total"></span><span class="w">次提交 · 近 30 天</span><span class="sub">今天 <b id="today"></b> · 本周 <b>86</b> · 上周 <b>102</b> · <b id="hot"></b> 个活跃仓库 · <b>23</b> 位贡献者</span></div>
+  <div class="left panel"><h3>每日提交 · 全部仓库 <span class="num">30 天</span></h3><div class="chart" id="chart"></div><div class="axis"><span>9月24日</span><span>10月1日</span><span>10月8日</span><span>10月15日</span><span>今天</span></div>
+    <div class="cap"><span>最忙的一天 <b>10月9日 · 43</b></span><span>工作日均 <b>27</b></span><span>本周较上周 <b class="dn">−16%</b></span></div></div>
+  <div class="list panel"><h3>活跃仓库 <span class="num">按 30 天提交</span></h3><div id="rows"></div></div>
+  <div class="bar panel">
+    <div class="cell"><span class="icon">HDMI</span><span>插线即投屏</span></div>
+    <div class="cell"><span class="dot" style="background:var(--ok)"></span><span>wevantage</span><span class="k">12 分钟前</span></div>
+    <div class="cell"><span class="dot" style="background:var(--accent)"></span><span>api-gateway</span><span class="k">运行中</span></div>
+    <div class="spacer"></div>
+    <div class="dots"><i></i><i></i><i></i><i class="on"></i><span class="hint"><span class="num">‹ ›</span> 翻页</span></div>
+  </div>
+  <div class="note" style="bottom:160px">B · 趋势加榜单（第 4 页）：左侧大 30 天每日提交柱图（周末淡、今天白）+ 一行摘要，右侧按 30 天提交排名的仓库榜单（迷你趋势、最近提交）</div>
+<script src="data.js"></script><script>
+  const tot = Array.from({length: DAYS}, (_, i) => total(i));
+  document.getElementById("total").textContent = tot.reduce((a, b) => a + b, 0);
+  document.getElementById("today").textContent = tot[DAYS - 1];
+  document.getElementById("hot").textContent = REPOS.filter(r => r.tier === "hot").length;
+  const chart = document.getElementById("chart");
+  requestAnimationFrame(() => bars(chart, tot, chart.clientHeight));
+  const g = document.getElementById("rows");
+  REPOS.slice().sort((a, b) => b.d.reduce((x, y) => x + y) - a.d.reduce((x, y) => x + y)).slice(0, 6).forEach((r, i) => {
+    const n = r.d.reduce((a, b) => a + b, 0);
+    const el = document.createElement("div"); el.className = "rw " + r.tier;
+    el.innerHTML = `<span class="rk">${i + 1}</span><div><div class="nm"><span class="tier ${r.tier}"></span>${r.name}</div><div class="lt">${r.last}</div></div><div class="spark"></div><span class="n">${n}</span>`;
+    g.appendChild(el); bars(el.querySelector(".spark"), r.d, 36);
+  });
+</script></body></html>

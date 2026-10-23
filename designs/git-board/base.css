@@ -1,0 +1,23 @@
+/* Shared tokens, taken from the launcher: black background, Outfit for Latin/digits,
+   PingFang for CJK, white at fixed alphas, glass panels and pills. */
+@font-face { font-family: "Outfit"; src: url("outfit.ttf") format("truetype"); font-weight: 100 900; }
+:root {
+  --bg: #000;
+  --t100: #fff; --t90: rgba(255,255,255,.9); --t70: rgba(255,255,255,.7); --t55: rgba(255,255,255,.55); --t40: rgba(255,255,255,.4); --t25: rgba(255,255,255,.25);
+  --tile: #1c1c1e;
+  --glass-top: rgba(255,255,255,.18); --glass-bot: rgba(255,255,255,.08); --glass-line: rgba(255,255,255,.22);
+  --panel-top: rgba(42,42,46,.95); --panel-bot: rgba(22,22,24,.96);
+  --accent: #2f7cf6;   /* Xiaomi system blue seen in the TV settings */
+  --ok: #4cd964; --warn: #ffb340; --bad: #ff5a5a;
+  --latin: "Outfit", -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+  --cjk: "PingFang SC", "Noto Sans SC", "Outfit", -apple-system, sans-serif;
+}
+html, body { margin: 0; background: var(--bg); color: var(--t100); }
+body { width: 1920px; height: 1080px; overflow: hidden; position: relative; font-family: var(--cjk); -webkit-font-smoothing: antialiased; }
+.num { font-family: var(--latin); font-variant-numeric: tabular-nums; }
+.pill { display: inline-flex; align-items: center; gap: 14px; height: 64px; padding: 0 28px; border-radius: 32px;
+  background: linear-gradient(var(--glass-top), var(--glass-bot)); border: 1px solid var(--glass-line); font-size: 26px; color: var(--t90); }
+.panel { background: linear-gradient(var(--panel-top), var(--panel-bot)); border: 1px solid var(--glass-line); border-radius: 28px; }
+.tile { background: var(--tile); border-radius: 20px; }
+.dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+.label { font-size: 24px; color: var(--t55); letter-spacing: .06em; }

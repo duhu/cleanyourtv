@@ -1,0 +1,11 @@
+/* Shared chrome of the pager mockups: black background (meeting-room has sky_intensity 0), the
+   bottom status bar common to all pages with the page dots at its right end. 2px per dp. */
+body { background: #000; }
+.bar { position: absolute; left: 96px; right: 96px; bottom: 48px; height: 100px; display: flex; align-items: center; padding: 0 20px; }
+.bar .cell { height: 60px; }
+.bar .spacer { flex: 1; }
+.dots { display: flex; align-items: center; gap: 18px; padding: 0 28px; }
+.dots i { width: 14px; height: 14px; border-radius: 50%; background: var(--t25); }
+.dots i.on { background: var(--t90); width: 16px; height: 16px; }
+.dots .hint { font-size: 22px; color: var(--t40); margin-left: 10px; }
+.dots .hint .num { letter-spacing: .1em; }

@@ -1,0 +1,22 @@
+/* Git panorama page: shared bits for the A/B mockups. 2px per dp. Background is the meeting-room
+   wallpaper (themes/meeting-room/wallpaper.jpg) exactly as the launcher draws it, centre-cropped. */
+body { background: #000 url("wallpaper.jpg") center / cover no-repeat; }
+.title { position: absolute; left: 112px; top: 84px; display: flex; align-items: baseline; gap: 26px; }
+.title .big { font-family: var(--latin); font-weight: 200; font-size: 150px; line-height: 1; letter-spacing: -.04em; }
+.title .w { font-size: 34px; color: var(--t70); }
+.title .sub { font-size: 28px; color: var(--t40); margin-left: 10px; }
+.title .sub b { color: var(--t70); font-weight: 400; font-family: var(--latin); }
+/* 30-day bar chart: one bar per day, weekends dimmer, today in white. */
+.chart { display: flex; align-items: flex-end; gap: 10px; }
+.chart i { flex: 1; border-radius: 4px 4px 2px 2px; background: rgba(255,255,255,.42); min-height: 4px; }
+.chart i.we { background: rgba(255,255,255,.2); }
+.chart i.today { background: #fff; }
+.chart i.sel { background: #fff; }
+.axis { display: flex; justify-content: space-between; font-family: var(--latin); font-size: 22px; color: var(--t40); margin-top: 12px; }
+/* Repo sparkline: smaller version of the chart. */
+.spark { display: flex; align-items: flex-end; gap: 4px; height: 44px; }
+.spark i { flex: 1; border-radius: 2px; background: rgba(255,255,255,.35); min-height: 3px; }
+.spark i.today { background: #fff; }
+.tier { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+.tier.hot { background: var(--ok); } .tier.warm { background: var(--warn); } .tier.cold { background: var(--t25); }
+.ci-ok { color: var(--ok); } .ci-bad { color: var(--bad); } .ci-run { color: var(--accent); }
