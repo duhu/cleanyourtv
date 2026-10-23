@@ -16,11 +16,11 @@ public class PagesConfigTest {
 
     /** Pages and the rest at their config.xml defaults, with the given coordinates. */
     private static PagesConfig pages(List<String> pages, String defaultPage, String lat, String lon) {
-        return PagesConfig.from(pages, defaultPage, 600, true, false, lat, lon, "", "", NONE, "", false);
+        return PagesConfig.from(pages, defaultPage, 600, true, false, lat, lon, "", "", NONE, NONE, "", false);
     }
 
     private static PagesConfig sources(String lat, String lon, String gitlabUrl, String token, List<String> projects, String feedUrl) {
-        return PagesConfig.from(Arrays.asList("apps"), "apps", 600, true, false, lat, lon, gitlabUrl, token, projects, feedUrl, false);
+        return PagesConfig.from(Arrays.asList("apps"), "apps", 600, true, false, lat, lon, gitlabUrl, token, projects, NONE, feedUrl, false);
     }
 
     @Test
@@ -71,13 +71,13 @@ public class PagesConfigTest {
 
     @Test
     public void returnSecondsClamp() {
-        assertEquals(0, PagesConfig.from(Arrays.asList("apps"), "apps", -5, true, false, "", "", "", "", NONE, "", false).returnSeconds);
-        assertEquals(86400, PagesConfig.from(Arrays.asList("apps"), "apps", 99999, true, false, "", "", "", "", NONE, "", false).returnSeconds);
+        assertEquals(0, PagesConfig.from(Arrays.asList("apps"), "apps", -5, true, false, "", "", "", "", NONE, NONE, "", false).returnSeconds);
+        assertEquals(86400, PagesConfig.from(Arrays.asList("apps"), "apps", 99999, true, false, "", "", "", "", NONE, NONE, "", false).returnSeconds);
     }
 
     @Test
     public void theFeedIsNeededByTheBarAndTheInfoPages() {
-        assertTrue(PagesConfig.from(Arrays.asList("apps"), "apps", 600, true, true, "", "", "", "", NONE, "", false).needsFeed());
+        assertTrue(PagesConfig.from(Arrays.asList("apps"), "apps", 600, true, true, "", "", "", "", NONE, NONE, "", false).needsFeed());
         assertTrue(pages(Arrays.asList("apps", "clock"), "clock", "", "").needsFeed());
         assertTrue(pages(Arrays.asList("weather"), "weather", "31.3", "120.6").needsFeed());
         assertFalse(pages(Arrays.asList("apps"), "apps", "31.3", "120.6").needsFeed());
@@ -106,12 +106,42 @@ public class PagesConfigTest {
     }
 
     @Test
-    public void gitlabNeedsUrlTokenAndProjects() {
+    public void gitlabNeedsUrlAndToken() {
         assertFalse(sources("", "", "https://g", "REPLACE_ME", Arrays.asList("a/b"), "").hasGitlab());
         assertFalse(sources("", "", "https://g", " ", Arrays.asList("a/b"), "").hasGitlab());
         assertFalse(sources("", "", "", "tok", Arrays.asList("a/b"), "").hasGitlab());
-        assertFalse(sources("", "", "https://g", "tok", Collections.singletonList(" "), "").hasGitlab());
         assertFalse(sources("", "", "ftp://g", "tok", Arrays.asList("a/b"), "").hasGitlab());
+    }
+
+    @Test
+    public void gitlabWithoutProjectsIsASource() {
+        PagesConfig c = sources("", "", "https://g", "tok", Collections.singletonList(" "), "");
+        assertTrue(c.hasGitlab());
+        assertFalse(c.hasProjects());
+        assertTrue(c.hasSources());
+        assertTrue(sources("", "", "https://g", "tok", Arrays.asList("a/b"), "").hasProjects());
+    }
+
+    @Test
+    public void gitPageNeedsGitlab() {
+        PagesConfig dropped = PagesConfig.from(Arrays.asList("clock", "git"), "git", 600, true, false, "", "", "", "", NONE, NONE, "", false);
+        assertEquals(Arrays.asList("clock"), dropped.pages);
+        assertEquals(0, dropped.defaultIndex);                // the default page went with git
+        assertFalse(dropped.needsFeed() && dropped.has(PagesConfig.PAGE_GIT));
+        PagesConfig kept = PagesConfig.from(Arrays.asList("clock", " Git "), "git", 600, true, false, "", "", "https://g", "tok", NONE, NONE, "", false);
+        assertEquals(Arrays.asList("clock", "git"), kept.pages);
+        assertEquals(1, kept.defaultIndex);
+        assertTrue(kept.has(PagesConfig.PAGE_GIT));
+        assertTrue(kept.needsFeed());
+        assertTrue(PagesConfig.from(Arrays.asList("apps", "git"), "apps", 600, true, false, "", "", "https://g", "tok", NONE, NONE, "", false).needsFeed());
+    }
+
+    @Test
+    public void gitlabGroupsAreTidied() {
+        PagesConfig c = PagesConfig.from(Arrays.asList("apps"), "apps", 600, true, false, "", "", "https://g", "tok", NONE,
+                Arrays.asList(" we-project/ ", "", null, "a/b", "we-project"), "", false);
+        assertEquals(Arrays.asList("we-project", "a/b"), c.gitlabGroups);
+        assertTrue(PagesConfig.from(Arrays.asList("apps"), "apps", 600, true, false, "", "", "", "", NONE, null, "", false).gitlabGroups.isEmpty());
     }
 
     @Test

@@ -183,6 +183,7 @@ final class Config {
         String gitlabUrl = res.getString(R.string.gitlab_url).trim();
         String gitlabToken = res.getString(R.string.gitlab_token).trim();
         List<String> gitlabProjects = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.gitlab_projects)));
+        List<String> gitlabGroups = new ArrayList<>(Arrays.asList(res.getStringArray(R.array.gitlab_groups)));
         String feedUrl = res.getString(R.string.feed_url).trim();
         boolean hdmiAutoSwitch = res.getBoolean(R.bool.hdmi_auto_switch);
         boolean hdmiTiles = res.getBoolean(R.bool.hdmi_tiles);
@@ -234,6 +235,7 @@ final class Config {
             gitlabUrl = string(json, "gitlab_url", gitlabUrl);
             gitlabToken = string(json, "gitlab_token", gitlabToken);
             gitlabProjects = stringList(json, "gitlab_projects", gitlabProjects);
+            gitlabGroups = stringList(json, "gitlab_groups", gitlabGroups);
             feedUrl = string(json, "feed_url", feedUrl);
             hdmiAutoSwitch = bool(json, "hdmi_auto_switch", hdmiAutoSwitch);
             hdmiTiles = bool(json, "hdmi_tiles", hdmiTiles);
@@ -261,7 +263,7 @@ final class Config {
                 Math.max(0, Math.min(100, skyIntensity)), settingsKeycodes, settingsKeyPanel, wallpaper, applied,
                 festival,
                 PagesConfig.from(pages, defaultPage, returnSeconds, flipClock, statusBar, weatherLat, weatherLon,
-                        gitlabUrl, gitlabToken, gitlabProjects, feedUrl, hdmiAutoSwitch),
+                        gitlabUrl, gitlabToken, gitlabProjects, gitlabGroups, feedUrl, hdmiAutoSwitch),
                 ScreenSchedule.from(idleSeconds, dimPercent, sleepTime, wakeTime),
                 only, showGreeting, "capsule".equals(tileStyle) ? "capsule" : "card", dimTopButtons, hdmiTiles);
     }

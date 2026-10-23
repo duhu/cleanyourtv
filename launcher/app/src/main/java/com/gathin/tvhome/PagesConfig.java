@@ -13,7 +13,7 @@ import java.util.Locale;
  * reason to fail the home screen.
  */
 final class PagesConfig {
-    static final String PAGE_APPS = "apps", PAGE_CLOCK = "clock", PAGE_WEATHER = "weather";
+    static final String PAGE_APPS = "apps", PAGE_CLOCK = "clock", PAGE_WEATHER = "weather", PAGE_GIT = "git";
     static final int MAX_RETURN = 86400;
     /** The token the shipped theme carries until the owner replaces it. */
     static final String TOKEN_PLACEHOLDER = "REPLACE_ME";
@@ -33,15 +33,17 @@ final class PagesConfig {
     /** Base URL without a trailing slash, or "" when GitLab is off. */
     final String gitlabUrl;
     final String gitlabToken;
-    /** group/project paths, trimmed, no blanks. */
+    /** group/project paths for the status bar, trimmed, no blanks; empty means the git page's discovery feeds the bar. */
     final List<String> gitlabProjects;
+    /** Namespace prefixes the git page keeps ("we-project"), trimmed, no trailing slash; empty means every group. */
+    final List<String> gitlabGroups;
     /** One JSON for everything; when set, the weather and GitLab sources are not used. */
     final String feedUrl;
     final boolean hdmiAutoSwitch;
 
     private PagesConfig(List<String> pages, int defaultIndex, int returnSeconds, boolean flipClock, boolean statusBar,
                         double lat, double lon, String gitlabUrl, String gitlabToken, List<String> gitlabProjects,
-                        String feedUrl, boolean hdmiAutoSwitch) {
+                        List<String> gitlabGroups, String feedUrl, boolean hdmiAutoSwitch) {
         this.pages = Collections.unmodifiableList(pages);
         this.defaultIndex = defaultIndex;
         this.returnSeconds = returnSeconds;
@@ -52,48 +54,58 @@ final class PagesConfig {
         this.gitlabUrl = gitlabUrl;
         this.gitlabToken = gitlabToken;
         this.gitlabProjects = Collections.unmodifiableList(gitlabProjects);
+        this.gitlabGroups = Collections.unmodifiableList(gitlabGroups);
         this.feedUrl = feedUrl;
         this.hdmiAutoSwitch = hdmiAutoSwitch;
     }
 
     static PagesConfig from(List<String> pageNames, String defaultPage, int returnSeconds, boolean flipClock, boolean statusBar,
                             String lat, String lon, String gitlabUrl, String gitlabToken, List<String> gitlabProjects,
-                            String feedUrl, boolean hdmiAutoSwitch) {
+                            List<String> gitlabGroups, String feedUrl, boolean hdmiAutoSwitch) {
         double la = coordinate(lat, 90), lo = coordinate(lon, 180);
         if (Double.isNaN(la) || Double.isNaN(lo)) la = lo = Double.NaN;
+        String url = httpUrl(gitlabUrl);
+        while (url.endsWith("/")) url = url.substring(0, url.length() - 1);
+        String token = gitlabToken == null ? "" : gitlabToken.trim();
+        if (TOKEN_PLACEHOLDER.equals(token)) token = "";
+        boolean gitlab = !url.isEmpty() && !token.isEmpty();
         List<String> pages = new ArrayList<>();
         if (pageNames != null) {
             for (String p : pageNames) {
                 String name = pageName(p);
                 if (name.isEmpty() || pages.contains(name)) continue;
                 if (PAGE_WEATHER.equals(name) && Double.isNaN(la)) continue;   // nothing to show without coordinates
+                if (PAGE_GIT.equals(name) && !gitlab) continue;                // nor without a GitLab to ask
                 pages.add(name);
             }
         }
         if (pages.isEmpty()) pages.add(PAGE_APPS);
         int defaultIndex = Math.max(0, pages.indexOf(pageName(defaultPage)));
         int ret = Math.max(0, Math.min(MAX_RETURN, returnSeconds));
-        String url = httpUrl(gitlabUrl);
-        while (url.endsWith("/")) url = url.substring(0, url.length() - 1);
-        String token = gitlabToken == null ? "" : gitlabToken.trim();
-        if (TOKEN_PLACEHOLDER.equals(token)) token = "";
-        List<String> projects = new ArrayList<>();
-        if (gitlabProjects != null) {
-            for (String p : gitlabProjects) {
-                if (p == null) continue;
-                String t = p.trim();
-                if (!t.isEmpty()) projects.add(t);
-            }
-        }
-        return new PagesConfig(pages, defaultIndex, ret, flipClock, statusBar, la, lo, url, token, projects,
+        List<String> projects = paths(gitlabProjects);
+        List<String> groups = paths(gitlabGroups);
+        return new PagesConfig(pages, defaultIndex, ret, flipClock, statusBar, la, lo, url, token, projects, groups,
                 httpUrl(feedUrl), hdmiAutoSwitch);
+    }
+
+    /** Trimmed, without trailing slashes, blanks and repeats dropped. */
+    private static List<String> paths(List<String> raw) {
+        List<String> out = new ArrayList<>();
+        if (raw == null) return out;
+        for (String p : raw) {
+            if (p == null) continue;
+            String t = p.trim();
+            while (t.endsWith("/")) t = t.substring(0, t.length() - 1);
+            if (!t.isEmpty() && !out.contains(t)) out.add(t);
+        }
+        return out;
     }
 
     /** A known page name from raw text, or "". */
     private static String pageName(String text) {
         if (text == null) return "";
         String t = text.trim().toLowerCase(Locale.ROOT);
-        return PAGE_APPS.equals(t) || PAGE_CLOCK.equals(t) || PAGE_WEATHER.equals(t) ? t : "";
+        return PAGE_APPS.equals(t) || PAGE_CLOCK.equals(t) || PAGE_WEATHER.equals(t) || PAGE_GIT.equals(t) ? t : "";
     }
 
     boolean has(String page) {
@@ -109,17 +121,23 @@ final class PagesConfig {
         return pages.size() > 1;
     }
 
-    /** Something on screen shows the feed's data: the bar, the clock's weather line or the weather page. */
+    /** Something on screen shows the feed's data: the bar, the clock's weather line, the weather page or the git page. */
     boolean needsFeed() {
-        return statusBar || has(PAGE_CLOCK) || has(PAGE_WEATHER);
+        return statusBar || has(PAGE_CLOCK) || has(PAGE_WEATHER) || has(PAGE_GIT);
     }
 
     boolean hasWeather() {
         return !Double.isNaN(weatherLat);
     }
 
+    /** A GitLab to ask: the git page's discovery, and the status bar's pipelines when there are projects. */
     boolean hasGitlab() {
-        return !gitlabUrl.isEmpty() && !gitlabToken.isEmpty() && !gitlabProjects.isEmpty();
+        return !gitlabUrl.isEmpty() && !gitlabToken.isEmpty();
+    }
+
+    /** Projects listed by hand for the status bar. */
+    boolean hasProjects() {
+        return !gitlabProjects.isEmpty();
     }
 
     boolean hasFeed() {

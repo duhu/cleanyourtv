@@ -127,8 +127,10 @@
 
     <!-- Home as pages (docs/superpowers/specs/2026-10-22-home-pager-design.md): the pages Left and Right flip
          through, in order. "apps" is the launcher itself; "clock" a large flip clock with the date and weather;
-         "weather" the current conditions, the next hours and three days (needs weather_lat/weather_lon).
-         Unknown names are dropped; an empty list means apps alone, which is today's launcher. -->
+         "weather" the current conditions, the next hours and three days (needs weather_lat/weather_lon);
+         "git" the 30-day commit panorama of the GitLab projects the token can see (needs gitlab_url/gitlab_token;
+         docs/superpowers/specs/2026-10-23-git-page-design.md). Unknown names are dropped; an empty list means
+         apps alone, which is today's launcher. -->
     <string-array name="pages">
         <item>apps</item>
     </string-array>
@@ -153,10 +155,13 @@
     <!-- Open-Meteo coordinates, decimal degrees as text; both empty keeps the weather off. -->
     <string name="weather_lat" translatable="false"></string>
     <string name="weather_lon" translatable="false"></string>
-    <!-- Self-hosted GitLab: base URL, a read_api token, and group/project paths for the status bar. -->
+    <!-- Self-hosted GitLab: base URL and a read_api token. gitlab_projects lists group/project paths for the status
+         bar by hand; left empty, the bar shows the most active projects the git page discovers. gitlab_groups keeps
+         the git page to these namespaces ("we-project"); empty means every project the token is a member of. -->
     <string name="gitlab_url" translatable="false"></string>
     <string name="gitlab_token" translatable="false"></string>
     <string-array name="gitlab_projects" />
+    <string-array name="gitlab_groups" />
     <!-- One JSON with everything (see StandbyData.parseFeed); when set, the two sources above are not used. -->
     <string name="feed_url" translatable="false"></string>
     <!-- Plugging a device into an HDMI port switches to it; unplugging brings Home back. -->
